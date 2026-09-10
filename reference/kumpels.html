@@ -1,0 +1,1415 @@
+<title>Kumpels Core</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#EEF1F6; --surface:#FFFFFF; --surface-2:#EEF2FB; --surface-3:#F6F8FC; --surface-hover:#F2F5FA;
+  --border:#E2E7EF; --border-strong:#CBD3E1; --border-soft:#EDF0F6;
+  --navy:#182755; --navy-700:#213467; --navy-600:#2C4183;
+  --ink:#16203A; --ink-2:#48566E; --ink-3:#7C8804; --muted:#78859B; --muted-2:#9AA6BB;
+  --accent:#2F4BC4; --accent-soft:#E7ECFB; --accent-ink:#2338A0;
+  --sb-bg:#111C3B; --sb-bg-2:#0C1531; --sb-text:#9AA6C6; --sb-text-dim:#6A769B; --sb-active:#22335F; --sb-brandline:#5468B8;
+  --warn:#D9820A; --warn-bg:#FBF0DD; --warn-line:#F0D8A8;
+  --crit:#CE4B45; --crit-bg:#FAE9E7; --crit-line:#EFC9C6;
+  --ok:#2C9865; --ok-bg:#E3F3EB; --ok-line:#BEE3CE;
+  --info:#2F4BC4; --info-bg:#E7ECFB; --info-line:#CBD6F5;
+  --neutral:#5D6A82; --neutral-bg:#EDF0F5;
+  --shadow-sm:0 1px 2px rgba(20,30,60,.06); --shadow:0 4px 14px rgba(20,30,60,.08); --shadow-lg:0 12px 34px rgba(20,30,60,.14);
+  --radius:10px; --radius-sm:7px; --radius-lg:14px;
+  --sans:'IBM Plex Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+button{font-family:inherit;cursor:pointer;color:inherit}
+input,select{font-family:inherit;font-size:inherit;color:inherit}
+::selection{background:#c9d4f5}
+.mono{font-family:var(--mono)}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* ---------- App shell ---------- */
+.app{display:grid;grid-template-columns:236px 1fr;min-height:100vh;}
+.sidebar{background:linear-gradient(180deg,var(--sb-bg) 0%,var(--sb-bg-2) 100%);color:var(--sb-text);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;}
+.brand{padding:18px 18px 16px;border-bottom:1px solid rgba(255,255,255,.07);}
+.brand-row{display:flex;align-items:center;gap:10px;}
+.brand-mark{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,#3C5AD6,#5A73E8);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:16px;flex:0 0 auto;box-shadow:inset 0 0 0 1px rgba(255,255,255,.15)}
+.brand-name{font-weight:700;color:#fff;font-size:15px;letter-spacing:.2px;line-height:1.1}
+.brand-sub{font-size:10.5px;color:var(--sb-brandline);letter-spacing:.6px;text-transform:uppercase;font-weight:600;margin-top:2px}
+.org-chip{margin:12px 12px 0;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:8px 10px;display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer}
+.org-chip:hover{background:rgba(255,255,255,.09)}
+.org-chip .o-name{color:#EAEEFA;font-weight:600;font-size:12.5px}
+.org-chip .o-sub{color:var(--sb-text-dim);font-size:10.5px}
+.org-chip .chev{color:var(--sb-text-dim);font-size:11px}
+.nav{padding:14px 10px 20px;display:flex;flex-direction:column;gap:2px}
+.nav-group{font-size:10px;letter-spacing:1.1px;text-transform:uppercase;color:var(--sb-text-dim);font-weight:600;padding:12px 10px 5px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;color:var(--sb-text);font-size:13px;font-weight:500;border:none;background:none;width:100%;text-align:left;transition:background .12s,color .12s}
+.nav-item:hover{background:rgba(255,255,255,.06);color:#E7ECF8}
+.nav-item.active{background:var(--sb-active);color:#fff;font-weight:600;box-shadow:inset 2px 0 0 #6E86EA}
+.nav-item .ico{width:16px;height:16px;flex:0 0 auto;opacity:.85}
+.nav-item.active .ico{opacity:1}
+.nav-badge{margin-left:auto;background:var(--warn);color:#fff;font-size:10.5px;font-weight:600;border-radius:20px;padding:1px 7px;font-family:var(--mono)}
+.nav-badge.crit{background:var(--crit)}
+
+/* ---------- Top bar ---------- */
+.main{display:flex;flex-direction:column;min-width:0}
+.topbar{height:56px;background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 22px;position:sticky;top:0;z-index:30}
+.search{flex:1;max-width:440px;position:relative}
+.search input{width:100%;height:36px;border:1px solid var(--border);background:var(--surface-3);border-radius:8px;padding:0 12px 0 34px;outline:none;font-size:13px}
+.search input:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px var(--accent-soft)}
+.search .s-ico{position:absolute;left:11px;top:9px;color:var(--muted-2)}
+.top-spacer{flex:1}
+.ask-btn{display:flex;align-items:center;gap:7px;height:36px;padding:0 14px;border-radius:8px;background:var(--navy);color:#fff;border:none;font-weight:600;font-size:13px;box-shadow:var(--shadow-sm)}
+.ask-btn:hover{background:var(--navy-700)}
+.ask-btn .spark{font-size:13px}
+.icon-btn{width:36px;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;color:var(--ink-2);position:relative}
+.icon-btn:hover{background:var(--surface-hover)}
+.icon-btn .dot{position:absolute;top:7px;right:8px;width:7px;height:7px;border-radius:50%;background:var(--crit);border:1.5px solid #fff}
+.user-chip{display:flex;align-items:center;gap:9px;padding:3px 6px 3px 3px;border-radius:22px;border:1px solid var(--border);background:var(--surface)}
+.user-chip:hover{background:var(--surface-hover)}
+.avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#2C4183,#3C5AD6);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;flex:0 0 auto}
+.user-chip .u-name{font-weight:600;font-size:12.5px;line-height:1.05}
+.user-chip .u-role{font-size:10.5px;color:var(--muted)}
+
+/* ---------- Content ---------- */
+.content{padding:22px 26px 44px;max-width:1560px;width:100%;margin:0 auto}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:18px}
+.page-title{font-size:22px;font-weight:700;letter-spacing:-.3px;margin:0;color:var(--ink)}
+.page-sub{color:var(--ink-2);font-size:13.5px;margin-top:3px}
+.page-meta{text-align:right;color:var(--muted);font-size:12px}
+.page-meta strong{color:var(--ink-2);font-weight:600;display:block;font-size:12.5px}
+
+/* KPI */
+.kpi-row{display:grid;gap:12px;margin-bottom:20px}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:13px 14px;position:relative;overflow:hidden}
+.kpi .k-label{font-size:11.5px;color:var(--ink-2);font-weight:500;line-height:1.25;min-height:29px}
+.kpi .k-val{font-size:26px;font-weight:700;letter-spacing:-.5px;margin-top:6px;font-family:var(--mono)}
+.kpi .k-foot{font-size:11px;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:5px}
+.kpi .k-accent{position:absolute;left:0;top:0;bottom:0;width:3px}
+.kpi.attn .k-val{color:var(--warn)} .kpi.attn .k-accent{background:var(--warn)}
+.kpi.crit .k-val{color:var(--crit)} .kpi.crit .k-accent{background:var(--crit)}
+.kpi.calm .k-accent{background:var(--accent)}
+.kpi.good .k-accent{background:var(--ok)}
+
+/* Cards / sections */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);}
+.section-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;border-bottom:1px solid var(--border-soft)}
+.section-title{font-size:14.5px;font-weight:700;color:var(--ink);display:flex;align-items:center;gap:9px}
+.section-title .st-sub{font-weight:400;color:var(--muted);font-size:12px}
+.section-desc{color:var(--ink-2);font-size:12.5px}
+.grid{display:grid;gap:16px}
+
+/* Badges */
+.badge{display:inline-flex;align-items:center;gap:5px;height:20px;padding:0 8px;border-radius:5px;font-size:10.5px;font-weight:600;letter-spacing:.3px;text-transform:uppercase;white-space:nowrap}
+.badge.hi{background:var(--crit-bg);color:#B23A35;box-shadow:inset 0 0 0 1px var(--crit-line)}
+.badge.action{background:var(--warn-bg);color:#B26A05;box-shadow:inset 0 0 0 1px var(--warn-line)}
+.badge.monitor{background:var(--neutral-bg);color:#556280;box-shadow:inset 0 0 0 1px #DBE1EC}
+.badge.ok{background:var(--ok-bg);color:#1F7A4E;box-shadow:inset 0 0 0 1px var(--ok-line)}
+.badge.info{background:var(--info-bg);color:var(--accent-ink);box-shadow:inset 0 0 0 1px var(--info-line)}
+.badge.plain{background:var(--surface-2);color:var(--ink-2);box-shadow:inset 0 0 0 1px var(--border)}
+.tag{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:var(--ink-2);background:var(--surface-3);border:1px solid var(--border);border-radius:6px;padding:2px 8px;font-weight:500}
+.tag .t-ico{color:var(--muted-2)}
+.cat{display:inline-flex;align-items:center;height:19px;padding:0 7px;border-radius:5px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase}
+
+/* Priority queue */
+.pq{display:flex;flex-direction:column}
+.pq-item{display:grid;grid-template-columns:4px 1fr auto;gap:0;border-bottom:1px solid var(--border-soft);cursor:pointer;transition:background .12s}
+.pq-item:last-child{border-bottom:none}
+.pq-item:hover{background:var(--surface-hover)}
+.pq-stripe{width:4px}
+.pq-stripe.hi{background:var(--crit)} .pq-stripe.action{background:var(--warn)} .pq-stripe.monitor{background:var(--neutral)}
+.pq-body{padding:13px 16px;min-width:0}
+.pq-top{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.pq-name{font-weight:700;font-size:14px;color:var(--ink)}
+.pq-id{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.pq-reason{color:var(--ink-2);font-size:12.5px;margin-top:5px;max-width:70ch}
+.pq-meta{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap}
+.pq-right{padding:13px 16px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:8px;border-left:1px solid var(--border-soft);min-width:190px}
+.pq-next{font-size:11px;color:var(--muted);text-align:right}
+.pq-next b{display:block;color:var(--accent-ink);font-size:12.5px;font-weight:600;margin-top:1px}
+.next-btn{display:inline-flex;align-items:center;gap:6px;height:30px;padding:0 12px;border-radius:7px;background:var(--surface);border:1px solid var(--border-strong);color:var(--navy);font-weight:600;font-size:12px}
+.next-btn:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+.pq-due{font-size:11px;font-weight:600}
+.pq-due.late{color:var(--crit)} .pq-due.soon{color:var(--warn)}
+
+/* Journey timeline */
+.journey{display:flex;align-items:flex-start;width:100%}
+.jstage{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;min-width:0}
+.jstage .jline{position:absolute;top:11px;height:2px;background:var(--border-strong);left:-50%;right:50%;z-index:0}
+.jstage:first-child .jline{display:none}
+.jstage .jline.done{background:var(--ok)}
+.jstage .jdot{width:24px;height:24px;border-radius:50%;background:var(--surface);border:2px solid var(--border-strong);display:flex;align-items:center;justify-content:center;z-index:1;position:relative;font-size:11px;color:var(--muted-2);font-weight:700}
+.jstage.done .jdot{background:var(--ok);border-color:var(--ok);color:#fff}
+.jstage.current .jdot{background:#fff;border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft)}
+.jstage.warning .jdot{background:#fff;border-color:var(--warn);color:var(--warn);box-shadow:0 0 0 4px var(--warn-bg)}
+.jstage.blocked .jdot{background:#fff;border-color:var(--crit);color:var(--crit);box-shadow:0 0 0 4px var(--crit-bg)}
+.jstage .jlabel{font-size:10.5px;color:var(--muted);margin-top:7px;text-align:center;font-weight:500;line-height:1.25;max-width:92px}
+.jstage.done .jlabel{color:var(--ink-2)}
+.jstage.current .jlabel{color:var(--accent-ink);font-weight:700}
+.jstage.warning .jlabel{color:#B26A05;font-weight:700}
+.jstage.blocked .jlabel{color:#B23A35;font-weight:700}
+.jstage .jsub{font-size:9.5px;color:var(--muted-2);margin-top:2px;text-align:center;font-family:var(--mono)}
+
+/* Journey cards */
+.jcards{display:grid;grid-template-columns:1fr;gap:14px}
+.jcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;cursor:pointer;transition:box-shadow .14s,border-color .14s,transform .06s}
+.jcard:hover{box-shadow:var(--shadow);border-color:var(--border-strong)}
+.jcard:active{transform:translateY(1px)}
+.jc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap}
+.jc-idn{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.jc-name{font-weight:700;font-size:15.5px;color:var(--ink)}
+.jc-badges{display:flex;gap:7px;align-items:center;flex-wrap:wrap}
+.jc-meta{display:flex;gap:8px;margin-top:9px;flex-wrap:wrap;align-items:center}
+.jc-journey{margin:20px 4px 8px}
+.jc-foot{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-top:18px;padding-top:14px;border-top:1px solid var(--border-soft);flex-wrap:wrap}
+.jc-next{display:flex;flex-direction:column;gap:2px}
+.jc-next .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:600}
+.jc-next .val{font-weight:600;color:var(--navy);font-size:13px;display:flex;align-items:center;gap:7px}
+.jc-obs{font-size:12px;color:var(--ink-2);max-width:46ch;text-align:right;background:var(--surface-3);border:1px solid var(--border-soft);border-radius:8px;padding:8px 11px}
+.jc-obs.warn{background:var(--warn-bg);border-color:var(--warn-line);color:#8A5203}
+
+/* Filter bar */
+.filterbar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.f-search{position:relative;flex:0 0 260px}
+.f-search input{width:100%;height:34px;border:1px solid var(--border);border-radius:8px;padding:0 10px 0 32px;background:var(--surface);outline:none;font-size:13px}
+.f-search input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.f-search .s-ico{position:absolute;left:10px;top:8px;color:var(--muted-2)}
+.fsel{position:relative}
+select.fsel-el{height:34px;border:1px solid var(--border);border-radius:8px;background:var(--surface);padding:0 30px 0 11px;font-size:12.5px;color:var(--ink-2);font-weight:500;outline:none;appearance:none;cursor:pointer}
+select.fsel-el:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--border);border-radius:9px;padding:3px;gap:3px;margin-left:auto}
+.seg button{border:none;background:none;padding:6px 13px;border-radius:6px;font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.seg button.on{background:var(--surface);color:var(--navy);box-shadow:var(--shadow-sm)}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.chip{border:1px solid var(--border);background:var(--surface);border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:600;color:var(--ink-2)}
+.chip:hover{background:var(--surface-hover)}
+.chip.on{background:var(--navy);color:#fff;border-color:var(--navy)}
+.chip .c-count{font-family:var(--mono);opacity:.7;margin-left:5px;font-size:11px}
+.chip.on .c-count{opacity:.85}
+
+/* Schedule / lists */
+.sched{display:flex;flex-direction:column}
+.sched-row{display:grid;grid-template-columns:64px 1fr auto;gap:14px;padding:11px 16px;border-bottom:1px solid var(--border-soft);align-items:center}
+.sched-row:last-child{border-bottom:none}
+.sched-row:hover{background:var(--surface-hover);cursor:pointer}
+.sched-time{font-family:var(--mono);font-weight:600;font-size:13px;color:var(--navy)}
+.sched-main .sm-name{font-weight:600;font-size:13.5px}
+.sched-main .sm-sub{font-size:12px;color:var(--ink-2);margin-top:1px}
+.opsnap{display:flex;flex-direction:column;gap:1px}
+.opsnap-row{display:flex;align-items:center;gap:11px;padding:10px 16px;border-bottom:1px solid var(--border-soft)}
+.opsnap-row:last-child{border-bottom:none}
+.opsnap-num{font-family:var(--mono);font-weight:700;font-size:16px;width:26px;text-align:center}
+.opsnap-row .os-txt{font-size:12.5px;color:var(--ink-2)}
+
+/* Patient 360 */
+.p360-head{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;margin-bottom:16px}
+.p360-top{display:flex;align-items:flex-start;gap:16px;justify-content:space-between;flex-wrap:wrap}
+.p360-id{display:flex;gap:15px;align-items:center}
+.p360-av{width:52px;height:52px;border-radius:13px;background:linear-gradient(135deg,#2C4183,#4059B0);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:19px;flex:0 0 auto}
+.p360-name{font-size:21px;font-weight:700;letter-spacing:-.3px;line-height:1.1}
+.p360-line{display:flex;gap:9px;align-items:center;margin-top:6px;flex-wrap:wrap;color:var(--ink-2);font-size:12.5px}
+.p360-line .dot-sep{width:3px;height:3px;border-radius:50%;background:var(--muted-2)}
+.p360-badges{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.p360-team{display:flex;gap:22px;margin-top:16px;padding-top:15px;border-top:1px solid var(--border-soft);flex-wrap:wrap}
+.team-m .tm-lbl{font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:600}
+.team-m .tm-name{font-weight:600;font-size:13px;margin-top:2px;display:flex;align-items:center;gap:7px}
+.team-av{width:22px;height:22px;border-radius:50%;background:var(--surface-2);color:var(--navy);display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;border:1px solid var(--border)}
+
+.hero-action{display:grid;grid-template-columns:1fr auto;gap:18px;background:linear-gradient(120deg,#1A2A57,#233a76);color:#fff;border-radius:var(--radius-lg);padding:18px 22px;margin-bottom:16px;align-items:center}
+.hero-action .ha-lbl{font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;color:#A9B6DE;font-weight:600}
+.hero-action .ha-title{font-size:18px;font-weight:700;margin-top:5px}
+.hero-action .ha-when{display:flex;gap:9px;align-items:center;margin-top:7px;color:#C6D0EC;font-size:12.5px}
+.hero-pill{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.16);border-radius:20px;padding:2px 10px;font-size:11px;font-weight:600}
+.hero-action .ha-reason{color:#C6D0EC;font-size:12.5px;margin-top:10px;max-width:64ch;line-height:1.5}
+.ha-cta{display:flex;flex-direction:column;gap:9px;align-items:stretch}
+.btn-primary{background:#fff;color:var(--navy);border:none;border-radius:9px;padding:11px 20px;font-weight:700;font-size:13.5px;white-space:nowrap;box-shadow:var(--shadow-sm)}
+.btn-primary:hover{background:#EEF2FB}
+.ha-status{font-size:11px;color:#A9B6DE;text-align:center}
+
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--border);margin-bottom:18px}
+.tab{border:none;background:none;padding:11px 15px;font-size:13.5px;font-weight:600;color:var(--ink-2);border-bottom:2px solid transparent;margin-bottom:-1px}
+.tab:hover{color:var(--ink)}
+.tab.on{color:var(--navy);border-bottom-color:var(--navy)}
+
+.two-col{display:grid;grid-template-columns:1.55fr 1fr;gap:16px;align-items:start}
+.info-card{padding:15px 16px}
+.info-card h4{margin:0 0 12px;font-size:12px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;display:flex;align-items:center;gap:8px}
+.kv{display:flex;justify-content:space-between;gap:14px;padding:7px 0;border-bottom:1px dashed var(--border-soft);font-size:13px}
+.kv:last-child{border-bottom:none}
+.kv .k{color:var(--ink-2)} .kv .v{font-weight:600;text-align:right}
+.stack{display:flex;flex-direction:column;gap:16px}
+
+.summary-box{background:var(--surface-2);border:1px solid var(--info-line);border-radius:var(--radius);padding:15px 16px}
+.summary-box .sb-head{display:flex;align-items:center;gap:8px;font-weight:700;font-size:13.5px;color:var(--navy);margin-bottom:9px}
+.summary-box .sb-body{font-size:13px;color:var(--ink);line-height:1.6}
+.summary-box .sb-note{font-size:11px;color:var(--muted);margin-top:10px;padding-top:9px;border-top:1px solid var(--info-line);display:flex;align-items:center;gap:6px}
+
+.alert-card{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.alert-card .ac-top{display:flex;align-items:center;gap:10px;padding:12px 15px;background:var(--crit-bg);border-bottom:1px solid var(--crit-line)}
+.alert-card.warn .ac-top{background:var(--warn-bg);border-color:var(--warn-line)}
+.alert-card .ac-title{font-weight:700;font-size:13.5px;color:var(--ink)}
+.alert-card .ac-grid{padding:13px 15px;display:grid;grid-template-columns:1fr 1fr;gap:11px 16px}
+.acg .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600}
+.acg .val{font-size:12.5px;font-weight:500;margin-top:2px;color:var(--ink)}
+.acg.full{grid-column:1/-1}
+.ac-foot{padding:10px 15px;border-top:1px solid var(--border-soft);background:var(--surface-3);display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-2)}
+
+.iv-card{border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px}
+.iv-top{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:7px}
+.iv-cat{font-weight:700;font-size:12.5px}
+.iv-date{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.iv-body{font-size:12.5px;color:var(--ink-2);line-height:1.55}
+.iv-by{font-size:11.5px;color:var(--muted);margin-top:7px;display:flex;align-items:center;gap:6px}
+
+/* Timeline (history) */
+.timeline{position:relative;padding-left:6px}
+.tl-row{display:grid;grid-template-columns:118px 30px 1fr;gap:0;position:relative}
+.tl-time{text-align:right;padding:2px 14px 22px 0;font-family:var(--mono);font-size:11px;color:var(--muted);line-height:1.4}
+.tl-time b{display:block;color:var(--ink-2);font-weight:600;font-size:11.5px}
+.tl-rail{position:relative;display:flex;justify-content:center}
+.tl-rail::before{content:"";position:absolute;top:0;bottom:-6px;width:2px;background:var(--border);left:50%;transform:translateX(-50%)}
+.tl-row:last-child .tl-rail::before{display:none}
+.tl-node{width:26px;height:26px;border-radius:50%;background:var(--surface);border:2px solid var(--border-strong);display:flex;align-items:center;justify-content:center;z-index:1;margin-top:1px;font-size:11px}
+.tl-node.crit{border-color:var(--crit);background:var(--crit-bg);color:var(--crit)}
+.tl-node.warn{border-color:var(--warn);background:var(--warn-bg);color:var(--warn)}
+.tl-node.ok{border-color:var(--ok);background:var(--ok-bg);color:var(--ok)}
+.tl-node.info{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.tl-card{padding:2px 0 22px 16px;min-width:0}
+.tl-cardbox{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:11px 13px}
+.tl-chead{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.tl-ttl{font-weight:700;font-size:13px}
+.tl-desc{font-size:12.5px;color:var(--ink-2);margin-top:5px;line-height:1.5}
+.tl-actor{font-size:11px;color:var(--muted);margin-top:7px;display:flex;align-items:center;gap:6px}
+
+/* Review cards */
+.rq{display:flex;flex-direction:column;gap:12px}
+.rcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden}
+.rcard.hi{box-shadow:inset 3px 0 0 var(--crit)}
+.rcard.action{box-shadow:inset 3px 0 0 var(--warn)}
+.rcard.monitor{box-shadow:inset 3px 0 0 var(--neutral)}
+.rc-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:14px 16px 12px;flex-wrap:wrap}
+.rc-idn{display:flex;flex-direction:column;gap:6px}
+.rc-title{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.rc-h{font-weight:700;font-size:14.5px}
+.rc-sub{color:var(--ink-2);font-size:12.5px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.rc-grid{padding:0 16px 14px;display:grid;grid-template-columns:1fr 1fr;gap:12px 18px}
+.rcg{background:var(--surface-3);border:1px solid var(--border-soft);border-radius:8px;padding:10px 12px}
+.rcg .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:700;display:flex;align-items:center;gap:6px}
+.rcg .txt{font-size:12.5px;color:var(--ink);margin-top:5px;line-height:1.5}
+.rcg.trig{background:var(--warn-bg);border-color:var(--warn-line)}
+.rc-foot{display:flex;align-items:center;gap:9px;padding:12px 16px;border-top:1px solid var(--border-soft);background:var(--surface-3);flex-wrap:wrap}
+.rc-foot .status-txt{font-size:12px;color:var(--ink-2);display:flex;align-items:center;gap:7px;margin-right:auto}
+.btn-sm{height:32px;padding:0 13px;border-radius:7px;border:1px solid var(--border-strong);background:var(--surface);font-weight:600;font-size:12.5px;color:var(--ink-2);display:inline-flex;align-items:center;gap:6px}
+.btn-sm:hover{background:var(--surface-hover)}
+.btn-sm.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+.btn-sm.primary:hover{background:var(--navy-700)}
+.btn-sm.ai{border-color:var(--accent);color:var(--accent-ink);background:var(--accent-soft)}
+.btn-sm.ai:hover{background:#DCE3FA}
+
+/* Ops pipeline */
+.pipeline{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:4px 2px}
+.pstep{flex:1;min-width:120px;background:var(--surface-3);border:1px solid var(--border-soft);padding:12px 12px;position:relative;display:flex;flex-direction:column;gap:5px}
+.pstep:first-child{border-radius:9px 0 0 9px} .pstep:last-child{border-radius:0 9px 9px 0}
+.pstep+.pstep{border-left:none}
+.pstep .ps-name{font-size:11.5px;font-weight:600;color:var(--ink-2)}
+.pstep .ps-count{font-size:20px;font-weight:700;font-family:var(--mono);color:var(--navy)}
+.pstep.hot{background:var(--warn-bg);border-color:var(--warn-line)}
+.pstep.hot .ps-count{color:var(--warn)}
+.pstep .ps-arrow{position:absolute;right:-9px;top:50%;transform:translateY(-50%);z-index:2;color:var(--muted-2);background:var(--bg);border-radius:50%}
+
+/* Ops rows */
+.opcard{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.oprow{display:grid;grid-template-columns:1fr auto;gap:14px;padding:13px 16px;border-bottom:1px solid var(--border-soft);align-items:center}
+.oprow:last-child{border-bottom:none}
+.oprow:hover{background:var(--surface-hover);cursor:pointer}
+.op-main .om-name{font-weight:700;font-size:13.5px;display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.op-sub{color:var(--ink-2);font-size:12px;margin-top:5px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.op-prog{display:flex;align-items:center;gap:10px}
+.prog-bar{width:120px;height:7px;border-radius:5px;background:var(--surface-2);overflow:hidden;border:1px solid var(--border)}
+.prog-fill{height:100%;background:var(--warn)}
+.prog-txt{font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--ink-2)}
+
+.op-detail{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:0;overflow:hidden;margin-bottom:16px}
+.od-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:16px 18px;border-bottom:1px solid var(--border-soft);flex-wrap:wrap}
+.od-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border-bottom:1px solid var(--border-soft)}
+.od-cell{padding:13px 16px;border-right:1px solid var(--border-soft)}
+.od-cell:last-child{border-right:none}
+.od-cell .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600}
+.od-cell .val{font-weight:700;font-size:14px;margin-top:4px;font-family:var(--mono)}
+.od-cell .val.sm{font-size:13px;font-family:var(--sans)}
+.od-cell .val.warn{color:var(--warn)}
+
+/* Analytics */
+.an-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.bars{display:flex;flex-direction:column;gap:11px;padding:15px 16px}
+.bar-row{display:grid;grid-template-columns:96px 1fr 42px;gap:12px;align-items:center;font-size:12.5px}
+.bar-track{height:22px;background:var(--surface-3);border-radius:6px;overflow:hidden;border:1px solid var(--border-soft)}
+.bar-fill{height:100%;border-radius:5px;display:flex;align-items:center;justify-content:flex-end;padding-right:0}
+.bar-val{font-family:var(--mono);font-weight:600;text-align:right;color:var(--ink-2)}
+.bar-lbl{color:var(--ink-2);font-weight:500}
+.insight-list{display:flex;flex-direction:column;gap:10px;padding:14px 16px}
+.insight{display:flex;gap:12px;align-items:flex-start;background:var(--surface-2);border:1px solid var(--info-line);border-radius:9px;padding:12px 14px}
+.insight .in-ico{width:26px;height:26px;border-radius:7px;background:#fff;border:1px solid var(--info-line);display:flex;align-items:center;justify-content:center;color:var(--accent);flex:0 0 auto}
+.insight .in-txt{font-size:12.5px;color:var(--ink);line-height:1.5}
+.insight .in-txt b{color:var(--navy)}
+.donut-wrap{display:flex;gap:18px;align-items:center;padding:16px}
+.legend{display:flex;flex-direction:column;gap:9px}
+.legend-item{display:flex;align-items:center;gap:9px;font-size:12.5px;color:var(--ink-2)}
+.legend-sw{width:11px;height:11px;border-radius:3px;flex:0 0 auto}
+.legend-val{font-family:var(--mono);font-weight:600;color:var(--ink);margin-left:6px}
+
+/* Ask Kumpels drawer */
+.scrim{position:fixed;inset:0;background:rgba(16,24,45,.35);z-index:80;opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:420px;max-width:92vw;background:var(--surface);border-left:1px solid var(--border);z-index:90;transform:translateX(100%);transition:transform .24s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:var(--shadow-lg)}
+.drawer.open{transform:translateX(0)}
+.dw-head{padding:16px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:11px}
+.dw-mark{width:32px;height:32px;border-radius:9px;background:linear-gradient(135deg,#2C4183,#4059B0);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+.dw-title{font-weight:700;font-size:15px}
+.dw-sub{font-size:11.5px;color:var(--muted)}
+.dw-close{margin-left:auto;width:30px;height:30px;border-radius:7px;border:1px solid var(--border);background:var(--surface);color:var(--ink-2);display:flex;align-items:center;justify-content:center}
+.dw-close:hover{background:var(--surface-hover)}
+.dw-body{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+.dw-hint{font-size:11px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600}
+.dw-q{text-align:left;border:1px solid var(--border);background:var(--surface-3);border-radius:9px;padding:11px 13px;font-size:13px;font-weight:500;color:var(--ink);display:flex;align-items:center;gap:9px}
+.dw-q:hover{border-color:var(--accent);background:var(--accent-soft)}
+.dw-a{background:var(--surface-2);border:1px solid var(--info-line);border-radius:10px;padding:13px 14px}
+.dw-a .a-q{font-weight:700;font-size:12.5px;color:var(--navy);margin-bottom:8px}
+.dw-a .a-body{font-size:12.5px;color:var(--ink);line-height:1.6}
+.dw-a .a-note{font-size:10.5px;color:var(--muted);margin-top:10px;padding-top:8px;border-top:1px solid var(--info-line)}
+.dw-input{padding:14px 16px;border-top:1px solid var(--border);display:flex;gap:9px}
+.dw-input input{flex:1;height:38px;border:1px solid var(--border);border-radius:9px;padding:0 12px;background:var(--surface-3);outline:none}
+.dw-input input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);background:#fff}
+.dw-send{width:38px;height:38px;border-radius:9px;background:var(--navy);color:#fff;border:none;display:flex;align-items:center;justify-content:center}
+
+.empty{padding:40px;text-align:center;color:var(--muted);font-size:13px}
+.subtle{color:var(--muted);font-size:12px}
+svg{display:block}
+@media (max-width:1180px){.two-col{grid-template-columns:1fr}.od-grid{grid-template-columns:repeat(2,1fr)}.an-grid{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:900px){.app{grid-template-columns:1fr}.sidebar{display:none}}
+</style>
+
+<div id="app-root"></div>
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="drawer"></aside>
+<script>
+/* ============================================================
+   KUMPELS CORE • ONCOLOGY CARE — prototype (synthetic data)
+   ============================================================ */
+const I = {
+  home:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg>',
+  users:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 20c0-3.3 2.5-5.5 5.5-5.5s5.5 2.2 5.5 5.5"/><path d="M16 5.2A3 3 0 0 1 16 11"/><path d="M17 14.6c2.3.5 3.8 2.4 3.8 5"/></svg>',
+  route:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="6" cy="6" r="2.4"/><circle cx="18" cy="18" r="2.4"/><path d="M8.4 6H14a3.5 3.5 0 0 1 0 7H9.5a3.5 3.5 0 0 0 0 7h6.1"/></svg>',
+  pill:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="9" width="18" height="6" rx="3" transform="rotate(45 12 12)"/><path d="M8.5 8.5 15.5 15.5"/></svg>',
+  stethoscope:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M5 3v5a4 4 0 0 0 8 0V3"/><path d="M9 15a5 5 0 0 0 10 0v-2"/><circle cx="19" cy="10" r="2.2"/></svg>',
+  check:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M4 12.5 9 17.5 20 6.5"/></svg>',
+  msg:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M4 5h16v11H8l-4 4z"/></svg>',
+  box:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M3 7.5 12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>',
+  chart:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M4 20V4"/><path d="M4 20h16"/><rect x="7" y="12" width="3" height="5"/><rect x="12" y="8" width="3" height="9"/><rect x="17" y="5" width="3" height="12"/></svg>',
+  gear:'<svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></svg>',
+  search:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="15" height="15"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></svg>',
+  bell:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="17" height="17"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>',
+  spark:'<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M12 2l1.8 5.4L19 9l-5.2 1.6L12 16l-1.8-5.4L5 9l5.2-1.6z"/><path d="M18.5 14l.8 2.3L21.5 17l-2.2.7-.8 2.3-.8-2.3L15.5 17l2.2-.7z"/></svg>',
+  arrow:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',
+  chevR:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" width="12" height="12"><path d="M9 6l6 6-6 6"/></svg>',
+  chevD:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="11" height="11"><path d="M6 9l6 6 6-6"/></svg>',
+  clock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>',
+  alert:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M12 3 2 20h20z"/><path d="M12 9v5M12 17.5v.5"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/><path d="M9 12l2 2 4-4"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M6 6l12 12M18 6 6 18"/></svg>',
+  loc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M12 21s7-5.5 7-11a7 7 0 1 0-14 0c0 5.5 7 11 7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+  card:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>',
+  phone:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L20 13l1 4v3a1 1 0 0 1-1 1A16 16 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>',
+  wa:'<svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.8 4.9-1.3A10 10 0 1 0 12 2zm0 2a8 8 0 0 1 6.8 12.2c-.3.5-.2.5.3 2.3l-2.4-.6a8 8 0 1 1-4.7-13.9zm-3 4c-.2 0-.5.1-.7.4-.3.3-.9.9-.9 2.1s.9 2.5 1 2.6c.1.2 1.7 2.8 4.3 3.8 2.1.8 2.5.7 3 .6.5-.1 1.5-.6 1.7-1.2.2-.6.2-1.1.1-1.2l-.7-.4c-.3-.1-1.5-.7-1.7-.8-.2-.1-.4-.1-.5.1l-.7.9c-.1.2-.3.2-.5.1-.6-.3-1.4-.5-2.3-1.4-.7-.6-1.1-1.4-1.3-1.6-.1-.2 0-.4.1-.5l.4-.5c.1-.2.1-.3.2-.5s0-.4 0-.5c-.1-.1-.5-1.3-.7-1.8-.2-.4-.4-.4-.5-.4z"/></svg>',
+  doc:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 13h6M9 17h6"/></svg>',
+  bulb:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.2 1 2h6c0-.8.4-1.4 1-2A6 6 0 0 0 12 3z"/></svg>',
+  refresh:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M20 11a8 8 0 0 0-14-4L4 9M4 4v5h5"/><path d="M4 13a8 8 0 0 0 14 4l2-2M20 20v-5h-5"/></svg>',
+  syringe:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M18 3l3 3M17 4l3 3-8.5 8.5L8 16l-1-3z"/><path d="M11 9l4 4M4 20l4-4"/></svg>',
+  drop:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><path d="M12 3c3 4 6 7 6 10a6 6 0 0 1-12 0c0-3 3-6 6-10z"/></svg>',
+};
+
+const CFG = {
+  org:'Asisfarma', facility:'Bogotá',
+  user:{name:'Sandra Garzón', role:'Coordinación Farmacéutica', initials:'SG'},
+  facilities:['Castellana','IPS 48','Teusaquillo'],
+  payers:['Compensar','FOMAG'],
+};
+
+/* Journey templates by modality */
+const TEMPLATES = {
+  IV:['Prescripción','Revisión clínica','Autorización','Programación','Preparación','Administración','Seguimiento'],
+  Infusión:['Prescripción','Revisión clínica','Autorización','Programación','Preparación','Administración','Seguimiento'],
+  Oral:['Prescripción','Revisión clínica','Autorización','Dispensación','Reabastecimiento','Seguimiento'],
+  SC:['Prescripción','Revisión clínica','Autorización','Dispensación','Aplicación','Próxima aplicación'],
+};
+function jstages(mod, states, subs){ // states: array matching template; subs optional
+  const t = TEMPLATES[mod]; return t.map((label,i)=>({label, state:states[i]||'upcoming', sub:(subs&&subs[i])||''}));
+}
+
+/* ============ SHARED SYNTHETIC DATASET ============ */
+const PATIENTS = [
+{
+  id:'ONC-2041', name:'Laura Martínez', initials:'LM', age:47, sex:'F',
+  facility:'IPS 48', payer:'Compensar', dx:'Cáncer de mama', modality:'IV',
+  protocol:'ONC-BR-04', cycle:'4 / 6', priority:'HIGH', cat:'REVISIÓN CLÍNICA',
+  status:'Cambio de tratamiento', anchor:true,
+  reason:'Cambio de tratamiento detectado. Revisión farmacéutica requerida antes del próximo ciclo.',
+  obs:'Cambio de tratamiento detectado. Revisión profesional requerida.', obsWarn:true,
+  next:'Revisar tratamiento', nextRoute:'clinical', due:'Hoy', dueKind:'soon',
+  journey: jstages('IV',['done','warning','done','upcoming','upcoming','upcoming','upcoming'],['','requerida','activa','','','','']),
+  team:{pharm:'Ximena Torres', onc:'Dra. Andrea Herrera', nurse:'Equipo Sala IPS 48'},
+  auth:{status:'Validada', ref:'AUT-CMP-77421', ts:'Hoy 12:35', payer:'Compensar'},
+  clinical:{alergias:'Ninguna registrada', peso:'64 kg', talla:'1.62 m', bsa:'1.68 m²',
+            labs:'Neutrófilos 1.9×10⁹/L · Hb 11.4 g/dL', renal:'TFG 78 mL/min (normal)', hepatica:'AST/ALT dentro de rango'},
+  care:{prog:'Activo', last:'Hoy 09:35 · Ximena Torres', adher:'En seguimiento', nextFu:'Post-ciclo 4'},
+  med:'Doxorrubicina + Ciclofosfamida (esquema AC)', nextTx:'Programación pendiente tras revisión',
+  alert:{sev:'HIGH', title:'Revisión de medicación requerida',
+         param:'Recuento de neutrófilos: 1.9×10⁹/L', criterion:'Revisión requerida cuando un parámetro clínico queda fuera del umbral configurado en el protocolo institucional antes del siguiente ciclo.',
+         source:'Protocolo Oncológico Institucional — Demo v3.2', created:'Hoy 14:35', reviewStatus:'Revisión profesional requerida'},
+  intervention:{date:'Hoy 09:35', by:'Ximena Torres', cat:'Revisión de cambio de tratamiento',
+                context:'Cambio de esquema registrado ayer; se actualizó el episodio.', action:'Episodio revisado y documentado. Pendiente validación de criterio antes del ciclo 5.', status:'Documentada'},
+  comms:[{ch:'wa',txt:'Recordatorio de próxima cita enviado',ts:'Ayer 17:10',status:'Entregado'},
+         {ch:'phone',txt:'Confirmación de asistencia',ts:'Ayer 17:40',status:'Confirmado'}],
+  summary:'Laura se encuentra en ciclo 4 de 6. Ayer se registró un cambio de tratamiento. La autorización está activa. Un criterio clínico configurado requiere revisión farmacéutica antes del próximo tratamiento programado. No hay pendientes de disponibilidad de medicamento registrados. Revisión profesional requerida.',
+  cycles:[{c:'Ciclo 1',d:'12 Jun',s:'done'},{c:'Ciclo 2',d:'03 Jul',s:'done'},{c:'Ciclo 3',d:'30 Jul',s:'done'},{c:'Ciclo 4',d:'20 Ago',s:'done'},{c:'Ciclo 5',d:'Por programar',s:'warn'},{c:'Ciclo 6',d:'—',s:'up'}],
+  history:[
+    {t:'Hoy',time:'14:35',type:'ALERTA',kind:'crit',sev:'HIGH',ico:'alert',title:'Revisión clínica requerida',desc:'Criterio de protocolo configurado activado antes del próximo tratamiento.',actor:'Motor de reglas · Protocolo v3.2'},
+    {t:'Hoy',time:'12:35',type:'AUTORIZACIÓN',kind:'ok',sev:'COMPLETADO',ico:'shield',title:'Autorización validada',desc:'Autorización Compensar verificada para el próximo tratamiento.',actor:'Mesa de control'},
+    {t:'Hoy',time:'09:35',type:'INTERVENCIÓN',kind:'info',sev:'INFO',ico:'stethoscope',title:'Intervención farmacéutica documentada',desc:'Cambio de tratamiento revisado y episodio actualizado.',actor:'Ximena Torres'},
+    {t:'Ayer',time:'16:20',type:'TRATAMIENTO',kind:'info',sev:'INFO',ico:'pill',title:'Cambio de tratamiento registrado',desc:'Nueva configuración de tratamiento añadida al episodio.',actor:'Dra. Andrea Herrera'},
+    {t:'30 Ago',time:'11:00',type:'MEDICACIÓN',kind:'ok',sev:'COMPLETADO',ico:'drop',title:'Medicamento administrado',desc:'Administración del ciclo 3 completada en Sala IPS 48.',actor:'Equipo Sala IPS 48'},
+    {t:'27 Ago',time:'15:10',type:'SEGUIMIENTO',kind:'ok',sev:'COMPLETADO',ico:'check',title:'Seguimiento post-tratamiento completado',desc:'Sin eventos adversos reportados por la paciente.',actor:'Ximena Torres'},
+  ],
+},
+{
+  id:'ONC-2018', name:'Carlos Ramírez', initials:'CR', age:68, sex:'M',
+  facility:'Castellana', payer:'Compensar', dx:'Cáncer de próstata', modality:'Oral',
+  protocol:'ONC-PR-02', cycle:'Continuo', priority:'ACTION', cat:'REABASTECIMIENTO',
+  status:'Reabastecimiento vencido', anchor:true,
+  reason:'Reabastecimiento esperado hace 4 días. No se registra nueva dispensación.',
+  obs:'4 días fuera de la ventana esperada de reabastecimiento.', obsWarn:true,
+  next:'Contactar paciente', nextRoute:'patient', due:'Hace 4 días', dueKind:'late',
+  journey: jstages('Oral',['done','done','done','done','warning','upcoming'],['','','','entregada','vencido','']),
+  team:{pharm:'Ximena Torres', onc:'Dr. Julián Mesa', nurse:'—'},
+  auth:{status:'Validada', ref:'AUT-CMP-70118', ts:'12 Ago', payer:'Compensar'},
+  clinical:{alergias:'Ninguna registrada', peso:'78 kg', talla:'1.74 m', bsa:'1.93 m²',
+            labs:'PSA 6.1 ng/mL (control)', renal:'TFG 71 mL/min', hepatica:'Dentro de rango'},
+  care:{prog:'Activo', last:'12 Ago · Ximena Torres', adher:'En riesgo — reabastecimiento vencido', nextFu:'Vencido'},
+  med:'Abiraterona 1000 mg/día (oral)', nextTx:'Reabastecimiento vencido hace 4 días',
+  alert:{sev:'ACTION', title:'Reabastecimiento fuera de ventana',
+         param:'Días fuera de ventana: 4', criterion:'Alertar cuando la ventana esperada de reabastecimiento de medicación oral se supera sin nueva dispensación.',
+         source:'Regla operativa de adherencia — Demo v3.2', created:'Hoy 08:10', reviewStatus:'Contacto con paciente requerido'},
+  intervention:{date:'12 Ago', by:'Ximena Torres', cat:'Educación en adherencia',
+                context:'Refuerzo de continuidad de terapia oral.', action:'Paciente educado sobre importancia de continuidad. Programado control.', status:'Documentada'},
+  comms:[{ch:'wa',txt:'Recordatorio de reabastecimiento',ts:'Hace 5 días',status:'Entregado'},
+         {ch:'phone',txt:'Llamada de seguimiento',ts:'Hace 2 días',status:'Sin respuesta'}],
+  summary:'Carlos recibe terapia oral de manera continua. El reabastecimiento esperado se venció hace 4 días y no se registra nueva dispensación. Existe riesgo de interrupción del tratamiento. Se requiere contactar al paciente para confirmar continuidad. Autorización vigente.',
+  cycles:[{c:'Disp. 1',d:'14 May',s:'done'},{c:'Disp. 2',d:'13 Jun',s:'done'},{c:'Disp. 3',d:'12 Jul',s:'done'},{c:'Disp. 4',d:'12 Ago',s:'done'},{c:'Disp. 5',d:'Vencida (03 Sep)',s:'warn'}],
+  history:[
+    {t:'Hoy',time:'08:10',type:'ALERTA',kind:'warn',sev:'ACTION',ico:'refresh',title:'Reabastecimiento vencido',desc:'4 días fuera de la ventana esperada sin nueva dispensación.',actor:'Motor de reglas'},
+    {t:'Hace 2 días',time:'10:15',type:'CONTACTO',kind:'warn',sev:'PENDIENTE',ico:'phone',title:'Llamada sin respuesta',desc:'Intento de contacto telefónico no exitoso.',actor:'Mesa de control'},
+    {t:'12 Ago',time:'11:30',type:'MEDICACIÓN',kind:'ok',sev:'COMPLETADO',ico:'pill',title:'Dispensación 4 entregada',desc:'Abiraterona entregada — 30 días de tratamiento.',actor:'Farmacia Castellana'},
+    {t:'12 Ago',time:'11:00',type:'INTERVENCIÓN',kind:'info',sev:'INFO',ico:'stethoscope',title:'Educación en adherencia',desc:'Refuerzo de continuidad de terapia oral.',actor:'Ximena Torres'},
+  ],
+},
+{
+  id:'ONC-2002', name:'Diana Gómez', initials:'DG', age:54, sex:'F',
+  facility:'Teusaquillo', payer:'FOMAG', dx:'Cáncer de mama (HER2+)', modality:'SC',
+  protocol:'ONC-BR-07', cycle:'Continuo', priority:'ACTION', cat:'PENDIENTE',
+  status:'Dispensación parcial', anchor:true,
+  reason:'Dispensación parcial. 1 unidad continúa pendiente.',
+  obs:'2 de 3 unidades entregadas. 1 unidad pendiente de disponibilidad.', obsWarn:true,
+  next:'Gestionar pendiente', nextRoute:'ops', due:'Disp. Sep 5', dueKind:'soon',
+  journey: jstages('SC',['done','done','done','warning','upcoming','upcoming'],['','','','2/3','','Sep 8']),
+  team:{pharm:'Ximena Torres', onc:'Dra. Andrea Herrera', nurse:'Equipo Teusaquillo'},
+  auth:{status:'Validada', ref:'AUT-FMG-33902', ts:'28 Ago', payer:'FOMAG'},
+  clinical:{alergias:'Ninguna registrada', peso:'70 kg', talla:'1.66 m', bsa:'1.78 m²',
+            labs:'FEVI 60% (control)', renal:'TFG 82 mL/min', hepatica:'Dentro de rango'},
+  care:{prog:'Activo', last:'28 Ago · Ximena Torres', adher:'En seguimiento', nextFu:'Tras aplicación'},
+  med:'Trastuzumab SC 600 mg', nextTx:'Próxima aplicación: Sep 8',
+  alert:{sev:'ACTION', title:'Pendiente de medicamento',
+         param:'Unidades pendientes: 1 de 3', criterion:'Alertar cuando una dispensación queda parcial y existe medicación pendiente de disponibilidad.',
+         source:'Regla operativa de dispensación — Demo v3.2', created:'Hoy 13:20', reviewStatus:'Gestión operativa requerida'},
+  intervention:{date:'Hoy 13:20', by:'Farmacia Teusaquillo', cat:'Registro de pendiente',
+                context:'Dispensación parcial por disponibilidad de inventario.', action:'1 unidad registrada como pendiente. Notificación a paciente por gestionar.', status:'En proceso'},
+  comms:[{ch:'wa',txt:'Notificación de disponibilidad',ts:'Por enviar',status:'Pendiente'}],
+  summary:'Diana recibe terapia subcutánea de forma continua. La dispensación actual quedó parcial: se entregaron 2 de 3 unidades y 1 unidad continúa pendiente por disponibilidad, con fecha estimada Sep 5. La notificación al paciente está pendiente. La próxima aplicación está prevista para Sep 8. Autorización vigente.',
+  cycles:[{c:'Aplic. 1',d:'02 Jul',s:'done'},{c:'Aplic. 2',d:'23 Jul',s:'done'},{c:'Aplic. 3',d:'13 Ago',s:'done'},{c:'Aplic. 4',d:'Sep 8 (prog.)',s:'warn'}],
+  ops:{ordered:3, dispensed:2, pending:1, avail:'Sep 5', notify:'Pendiente', nextApp:'Sep 8', owner:'Farmacia Teusaquillo', lastUpd:'Hoy 13:20', lot:'LOT-DEMO-2409',
+       trace:[{t:'Prescripción recibida',s:'done',d:'02 Sep 08:40'},{t:'Validación clínica completada',s:'done',d:'02 Sep 10:15'},{t:'Autorización completada',s:'done',d:'02 Sep 11:00'},{t:'2 unidades dispensadas',s:'done',d:'Hoy 12:50'},{t:'1 unidad pendiente',s:'warn',d:'Hoy 13:20'},{t:'Contacto con paciente pendiente',s:'up',d:'—'}]},
+  history:[
+    {t:'Hoy',time:'13:20',type:'PENDIENTE',kind:'warn',sev:'ACTION',ico:'box',title:'Medicamento registrado como pendiente',desc:'1 de 3 unidades pendiente por disponibilidad. Estimado Sep 5.',actor:'Farmacia Teusaquillo'},
+    {t:'Hoy',time:'12:50',type:'MEDICACIÓN',kind:'ok',sev:'PARCIAL',ico:'syringe',title:'2 unidades dispensadas',desc:'Dispensación parcial registrada.',actor:'Farmacia Teusaquillo'},
+    {t:'02 Sep',time:'11:00',type:'AUTORIZACIÓN',kind:'ok',sev:'COMPLETADO',ico:'shield',title:'Autorización completada',desc:'Autorización FOMAG verificada.',actor:'Mesa de control'},
+    {t:'02 Sep',time:'10:15',type:'REVISIÓN',kind:'info',sev:'INFO',ico:'stethoscope',title:'Validación clínica completada',desc:'Terapia validada por farmacia clínica.',actor:'Ximena Torres'},
+  ],
+},
+{
+  id:'ONC-2037', name:'Patricia López', initials:'PL', age:61, sex:'F',
+  facility:'Castellana', payer:'Compensar', dx:'Cáncer colorrectal', modality:'Infusión',
+  protocol:'ONC-CR-03', cycle:'1 / 12', priority:'MONITOR', cat:'NUEVO PACIENTE',
+  status:'Paciente nuevo', anchor:true,
+  reason:'Paciente nuevo pendiente de entrevista inicial de atención farmacéutica.',
+  obs:'Ingreso reciente. Entrevista inicial de atención farmacéutica pendiente.', obsWarn:false,
+  next:'Realizar entrevista', nextRoute:'patient', due:'Esta semana', dueKind:'soon',
+  journey: jstages('Infusión',['done','current','upcoming','upcoming','upcoming','upcoming','upcoming'],['','entrevista','','','','','']),
+  team:{pharm:'Ximena Torres', onc:'Dr. Julián Mesa', nurse:'Equipo Castellana'},
+  auth:{status:'Recibida', ref:'AUT-CMP-79005', ts:'Hoy 10:05', payer:'Compensar'},
+  clinical:{alergias:'Por confirmar en entrevista', peso:'66 kg', talla:'1.60 m', bsa:'1.70 m²',
+            labs:'Perfil basal por documentar', renal:'TFG 74 mL/min', hepatica:'Dentro de rango'},
+  care:{prog:'Onboarding', last:'Sin contacto previo', adher:'No aplica aún', nextFu:'Entrevista inicial'},
+  med:'FOLFOX (esquema de infusión)', nextTx:'Programación tras entrevista inicial',
+  alert:{sev:'MONITOR', title:'Entrevista inicial pendiente',
+         param:'Estado: paciente nuevo', criterion:'Identificar pacientes nuevos que requieren entrevista inicial de atención farmacéutica antes del primer ciclo.',
+         source:'Programa de Atención Farmacéutica — Demo v3.2', created:'Hoy 10:05', reviewStatus:'Entrevista inicial requerida'},
+  intervention:{date:'—', by:'—', cat:'Sin intervenciones', context:'Paciente en proceso de onboarding.', action:'Pendiente de primera intervención.', status:'Pendiente'},
+  comms:[{ch:'phone',txt:'Agendamiento de entrevista inicial',ts:'Por realizar',status:'Pendiente'}],
+  summary:'Patricia es una paciente nueva en programa de infusión. La autorización fue recibida hoy. Está pendiente la entrevista inicial de atención farmacéutica y la documentación del perfil clínico basal antes de programar el primer ciclo. No hay intervenciones previas registradas.',
+  cycles:[{c:'Ciclo 1',d:'Por programar',s:'warn'},{c:'Ciclos 2-12',d:'—',s:'up'}],
+  history:[
+    {t:'Hoy',time:'10:05',type:'AUTORIZACIÓN',kind:'ok',sev:'RECIBIDA',ico:'shield',title:'Autorización recibida',desc:'Autorización Compensar registrada para inicio de tratamiento.',actor:'Mesa de control'},
+    {t:'Hoy',time:'09:40',type:'PACIENTE',kind:'info',sev:'NUEVO',ico:'users',title:'Paciente ingresado al programa',desc:'Nuevo episodio oncológico creado. Onboarding iniciado.',actor:'Admisiones Castellana'},
+  ],
+},
+];
+
+/* ---- additional synthetic patients (shared) ---- */
+function mkClin(peso,talla,bsa,labs){return {alergias:'Ninguna registrada',peso,talla,bsa,labs,renal:'TFG dentro de rango',hepatica:'Dentro de rango'};}
+PATIENTS.push(
+{ id:'ONC-2055', name:'Andrés Vargas', initials:'AV', age:59, sex:'M', facility:'IPS 48', payer:'Compensar', dx:'Cáncer de pulmón', modality:'Infusión',
+  protocol:'ONC-LU-05', cycle:'2 / 4', priority:'ACTION', cat:'AUTORIZACIÓN', status:'Autorización pendiente',
+  reason:'Autorización requerida no recibida. Tratamiento en espera antes de programación.',
+  obs:'Autorización pendiente con el pagador. Tratamiento bloqueado hasta resolución.', obsWarn:true,
+  next:'Gestionar autorización', nextRoute:'ops', due:'Bloquea programación', dueKind:'late',
+  journey: jstages('Infusión',['done','done','blocked','upcoming','upcoming','upcoming','upcoming'],['','','pendiente','','','','']),
+  team:{pharm:'Ximena Torres', onc:'Dra. Andrea Herrera', nurse:'Equipo IPS 48'},
+  auth:{status:'Pendiente', ref:'—', ts:'Solicitada 04 Sep', payer:'Compensar'},
+  clinical:mkClin('81 kg','1.78 m','2.00 m²','Hb 12.8 g/dL'), care:{prog:'Activo',last:'21 Ago · Ximena Torres',adher:'En seguimiento',nextFu:'Tras autorización'},
+  med:'Pembrolizumab (infusión)', nextTx:'En espera de autorización',
+  alert:{sev:'ACTION',title:'Autorización pendiente',param:'Estado autorización: pendiente',criterion:'Alertar cuando un tratamiento requiere autorización no recibida antes de la ventana de programación.',source:'Regla operativa de acceso — Demo v3.2',created:'Hoy 07:50',reviewStatus:'Gestión de autorización requerida'},
+  intervention:{date:'21 Ago',by:'Ximena Torres',cat:'Validación clínica',context:'Terapia validada; a la espera de acceso.',action:'Validación completada. Autorización en gestión.',status:'Documentada'},
+  comms:[{ch:'phone',txt:'Seguimiento de trámite de autorización',ts:'Hoy 09:00',status:'En gestión'}],
+  summary:'Andrés está en ciclo 2 de 4 en terapia de infusión. La autorización requerida por el pagador aún no ha sido recibida, lo que bloquea la programación del próximo ciclo. La validación clínica ya fue completada. Se requiere gestión de autorización para continuar.',
+  cycles:[{c:'Ciclo 1',d:'31 Jul',s:'done'},{c:'Ciclo 2',d:'21 Ago',s:'done'},{c:'Ciclo 3',d:'En espera',s:'warn'},{c:'Ciclo 4',d:'—',s:'up'}],
+  history:[{t:'Hoy',time:'07:50',type:'AUTORIZACIÓN',kind:'warn',sev:'PENDIENTE',ico:'shield',title:'Autorización pendiente',desc:'Trámite en gestión con el pagador; programación en espera.',actor:'Mesa de control'},
+    {t:'21 Ago',time:'10:00',type:'MEDICACIÓN',kind:'ok',sev:'COMPLETADO',ico:'drop',title:'Ciclo 2 administrado',desc:'Administración completada.',actor:'Equipo IPS 48'}] },
+{ id:'ONC-2011', name:'Marta Ruiz', initials:'MR', age:63, sex:'F', facility:'Teusaquillo', payer:'FOMAG', dx:'Cáncer gástrico', modality:'Oral',
+  protocol:'ONC-GA-01', cycle:'Continuo', priority:'ACTION', cat:'SEGUIMIENTO', status:'Seguimiento vencido',
+  reason:'Seguimiento programado vencido. Sin registro de contacto en la ventana esperada.',
+  obs:'Seguimiento de adherencia vencido hace 3 días.', obsWarn:true,
+  next:'Realizar seguimiento', nextRoute:'patient', due:'Hace 3 días', dueKind:'late',
+  journey: jstages('Oral',['done','done','done','done','done','warning'],['','','','','','vencido']),
+  team:{pharm:'Ximena Torres', onc:'Dr. Julián Mesa', nurse:'—'},
+  auth:{status:'Validada', ref:'AUT-FMG-30877', ts:'19 Ago', payer:'FOMAG'},
+  clinical:mkClin('58 kg','1.55 m','1.58 m²','Hb 10.9 g/dL'), care:{prog:'Activo',last:'19 Ago · Ximena Torres',adher:'Por confirmar',nextFu:'Vencido'},
+  med:'Capecitabina (oral)', nextTx:'Seguimiento vencido',
+  alert:{sev:'ACTION',title:'Seguimiento vencido',param:'Días de retraso: 3',criterion:'Alertar cuando un seguimiento programado supera su ventana sin registro de contacto.',source:'Regla operativa de seguimiento — Demo v3.2',created:'Hoy 08:00',reviewStatus:'Seguimiento requerido'},
+  intervention:{date:'19 Ago',by:'Ximena Torres',cat:'Seguimiento telefónico',context:'Control de tolerancia a terapia oral.',action:'Sin eventos adversos reportados. Programado próximo control.',status:'Documentada'},
+  comms:[{ch:'wa',txt:'Recordatorio de seguimiento',ts:'Hace 4 días',status:'Entregado'}],
+  summary:'Marta recibe terapia oral continua. El seguimiento programado está vencido hace 3 días sin registro de contacto. Se requiere completar el seguimiento de adherencia y tolerancia. Autorización vigente.',
+  cycles:[{c:'Disp. 1',d:'20 Jun',s:'done'},{c:'Disp. 2',d:'19 Jul',s:'done'},{c:'Disp. 3',d:'19 Ago',s:'done'}],
+  history:[{t:'Hoy',time:'08:00',type:'SEGUIMIENTO',kind:'warn',sev:'VENCIDO',ico:'clock',title:'Seguimiento vencido',desc:'Ventana de seguimiento superada sin contacto registrado.',actor:'Motor de reglas'}] },
+{ id:'ONC-2029', name:'Julián Castro', initials:'JC', age:44, sex:'M', facility:'Castellana', payer:'Compensar', dx:'Linfoma no Hodgkin', modality:'IV',
+  protocol:'ONC-LY-06', cycle:'3 / 6', priority:'MONITOR', cat:'PROGRAMADO', status:'Tratamiento hoy',
+  reason:'Tratamiento programado para hoy. Preparación en curso.',
+  obs:'Ciclo programado hoy. Sin pendientes clínicos ni operativos.', obsWarn:false,
+  next:'Ver programación', nextRoute:'patient', due:'Hoy 10:30', dueKind:'soon',
+  journey: jstages('IV',['done','done','done','done','current','upcoming','upcoming'],['','','','','en curso','','']),
+  team:{pharm:'Ximena Torres', onc:'Dra. Andrea Herrera', nurse:'Equipo Castellana'},
+  auth:{status:'Validada', ref:'AUT-CMP-78230', ts:'01 Sep', payer:'Compensar'},
+  clinical:mkClin('75 kg','1.80 m','1.94 m²','Neutrófilos 3.2×10⁹/L'), care:{prog:'Activo',last:'01 Sep · Ximena Torres',adher:'En seguimiento',nextFu:'Post-ciclo 3'},
+  med:'R-CHOP (esquema IV)', nextTx:'Hoy 10:30 · Sala Castellana',
+  alert:{sev:'MONITOR',title:'Sin alertas activas',param:'Estado: en preparación',criterion:'Sin criterios de revisión activados para este episodio.',source:'—',created:'Hoy',reviewStatus:'Monitoreo de rutina'},
+  intervention:{date:'01 Sep',by:'Ximena Torres',cat:'Validación de ciclo',context:'Validación previa al ciclo 3.',action:'Terapia validada sin observaciones.',status:'Documentada'},
+  comms:[{ch:'wa',txt:'Recordatorio de cita',ts:'Ayer',status:'Confirmado'}],
+  summary:'Julián está en ciclo 3 de 6 con esquema IV. El tratamiento está programado para hoy a las 10:30 y la preparación está en curso. No hay alertas clínicas ni pendientes operativos registrados. Autorización vigente.',
+  cycles:[{c:'Ciclo 1',d:'10 Jul',s:'done'},{c:'Ciclo 2',d:'01 Ago',s:'done'},{c:'Ciclo 3',d:'Hoy',s:'warn'},{c:'Ciclos 4-6',d:'—',s:'up'}],
+  history:[{t:'Hoy',time:'08:30',type:'PREPARACIÓN',kind:'info',sev:'EN CURSO',ico:'drop',title:'Preparación iniciada',desc:'Preparación del ciclo 3 en curso.',actor:'Central de mezclas Castellana'}] },
+{ id:'ONC-2044', name:'Sofía Herrera', initials:'SH', age:52, sex:'F', facility:'IPS 48', payer:'Compensar', dx:'Cáncer de ovario', modality:'IV',
+  protocol:'ONC-OV-02', cycle:'5 / 6', priority:'MONITOR', cat:'REVISADO', status:'Revisión completada',
+  reason:'Revisión farmacéutica completada. Episodio al día.',
+  obs:'Revisión clínica completada. Sin criterios activos.', obsWarn:false,
+  next:'Ver paciente', nextRoute:'patient', due:'—', dueKind:'',
+  journey: jstages('IV',['done','done','done','done','done','current','upcoming'],['','','','','','en curso','']),
+  team:{pharm:'Ximena Torres', onc:'Dra. Andrea Herrera', nurse:'Equipo IPS 48'},
+  auth:{status:'Validada', ref:'AUT-CMP-76540', ts:'26 Ago', payer:'Compensar'},
+  clinical:mkClin('68 kg','1.64 m','1.74 m²','Neutrófilos 2.8×10⁹/L'), care:{prog:'Activo',last:'Hoy 08:20 · Ximena Torres',adher:'Adecuada',nextFu:'Post-ciclo 5'},
+  med:'Carboplatino + Paclitaxel (IV)', nextTx:'Administración ciclo 5 en curso',
+  alert:{sev:'MONITOR',title:'Sin alertas activas',param:'Estado: revisado',criterion:'Sin criterios de revisión activados.',source:'—',created:'Hoy',reviewStatus:'Monitoreo de rutina'},
+  intervention:{date:'Hoy 08:20',by:'Ximena Torres',cat:'Revisión de ciclo',context:'Revisión previa al ciclo 5.',action:'Terapia revisada y validada sin observaciones.',status:'Documentada'},
+  comms:[{ch:'phone',txt:'Confirmación de asistencia',ts:'Ayer',status:'Confirmado'}],
+  summary:'Sofía está en ciclo 5 de 6. La revisión farmacéutica fue completada hoy sin observaciones y el episodio está al día. La administración del ciclo 5 está en curso. Autorización vigente.',
+  cycles:[{c:'Ciclo 1',d:'22 May',s:'done'},{c:'Ciclo 2',d:'12 Jun',s:'done'},{c:'Ciclo 3',d:'03 Jul',s:'done'},{c:'Ciclo 4',d:'24 Jul',s:'done'},{c:'Ciclo 5',d:'Hoy',s:'warn'},{c:'Ciclo 6',d:'—',s:'up'}],
+  history:[{t:'Hoy',time:'08:20',type:'INTERVENCIÓN',kind:'ok',sev:'COMPLETADO',ico:'check',title:'Revisión farmacéutica completada',desc:'Ciclo 5 revisado sin observaciones.',actor:'Ximena Torres'}] },
+{ id:'ONC-2007', name:'Ricardo Peña', initials:'RP', age:57, sex:'M', facility:'Teusaquillo', payer:'FOMAG', dx:'Melanoma', modality:'SC',
+  protocol:'ONC-ME-03', cycle:'Continuo', priority:'MONITOR', cat:'APLICACIÓN', status:'Próxima aplicación',
+  reason:'Próxima aplicación programada. Medicamento disponible.',
+  obs:'Próxima aplicación Sep 10. Medicamento disponible en sede.', obsWarn:false,
+  next:'Ver aplicación', nextRoute:'patient', due:'Sep 10', dueKind:'soon',
+  journey: jstages('SC',['done','done','done','done','done','current'],['','','','','','Sep 10']),
+  team:{pharm:'Ximena Torres', onc:'Dr. Julián Mesa', nurse:'Equipo Teusaquillo'},
+  auth:{status:'Validada', ref:'AUT-FMG-31200', ts:'20 Ago', payer:'FOMAG'},
+  clinical:mkClin('79 kg','1.76 m','1.96 m²','LDH normal'), care:{prog:'Activo',last:'20 Ago · Ximena Torres',adher:'Adecuada',nextFu:'Post-aplicación'},
+  med:'Nivolumab SC', nextTx:'Aplicación: Sep 10',
+  alert:{sev:'MONITOR',title:'Aplicación próxima',param:'Fecha de aplicación: Sep 10',criterion:'Hacer visible la próxima fecha de aplicación de medicación SC/IM.',source:'Regla operativa de aplicación — Demo v3.2',created:'Hoy',reviewStatus:'Monitoreo de rutina'},
+  intervention:{date:'20 Ago',by:'Ximena Torres',cat:'Seguimiento',context:'Control de tolerancia.',action:'Sin eventos adversos.',status:'Documentada'},
+  comms:[{ch:'wa',txt:'Recordatorio de aplicación',ts:'Programado',status:'Programado'}],
+  summary:'Ricardo recibe terapia SC de forma continua. La próxima aplicación está programada para Sep 10 y el medicamento está disponible en sede. No hay pendientes operativos. Autorización vigente.',
+  cycles:[{c:'Aplic. 1',d:'25 Jun',s:'done'},{c:'Aplic. 2',d:'16 Jul',s:'done'},{c:'Aplic. 3',d:'06 Ago',s:'done'},{c:'Aplic. 4',d:'Sep 10',s:'warn'}],
+  history:[{t:'Hoy',time:'07:30',type:'APLICACIÓN',kind:'info',sev:'PRÓXIMA',ico:'syringe',title:'Próxima aplicación programada',desc:'Aplicación prevista para Sep 10 con medicamento disponible.',actor:'Farmacia Teusaquillo'}] },
+{ id:'ONC-2062', name:'Valentina Ríos', initials:'VR', age:49, sex:'F', facility:'Castellana', payer:'Compensar', dx:'Cáncer de mama', modality:'Oral',
+  protocol:'ONC-BR-09', cycle:'Continuo', priority:'MONITOR', cat:'DISPENSACIÓN', status:'Lista para dispensación',
+  reason:'Medicamento disponible. Lista para dispensación en ventana.',
+  obs:'Dispensación en ventana esperada. Sin pendientes.', obsWarn:false,
+  next:'Ver dispensación', nextRoute:'ops', due:'Hoy', dueKind:'soon',
+  journey: jstages('Oral',['done','done','done','current','upcoming','upcoming'],['','','','disponible','','']),
+  team:{pharm:'Ximena Torres', onc:'Dra. Andrea Herrera', nurse:'—'},
+  auth:{status:'Validada', ref:'AUT-CMP-79110', ts:'02 Sep', payer:'Compensar'},
+  clinical:mkClin('62 kg','1.63 m','1.66 m²','Perfil dentro de rango'), care:{prog:'Activo',last:'02 Sep · Ximena Torres',adher:'Adecuada',nextFu:'Post-dispensación'},
+  med:'Tamoxifeno (oral)', nextTx:'Dispensación disponible hoy',
+  alert:{sev:'MONITOR',title:'Lista para dispensación',param:'Estado: medicamento disponible',criterion:'Hacer visible cuando la dispensación está lista dentro de la ventana esperada.',source:'Regla operativa de dispensación — Demo v3.2',created:'Hoy',reviewStatus:'Monitoreo de rutina'},
+  intervention:{date:'02 Sep',by:'Ximena Torres',cat:'Validación',context:'Validación de continuidad.',action:'Terapia validada.',status:'Documentada'},
+  comms:[{ch:'wa',txt:'Aviso de dispensación disponible',ts:'Hoy',status:'Entregado'}],
+  summary:'Valentina recibe terapia oral continua. El medicamento está disponible y la dispensación está lista dentro de la ventana esperada. No hay pendientes clínicos ni operativos. Autorización vigente.',
+  cycles:[{c:'Disp. 1',d:'05 Jul',s:'done'},{c:'Disp. 2',d:'04 Ago',s:'done'},{c:'Disp. 3',d:'Hoy',s:'warn'}],
+  history:[{t:'Hoy',time:'09:10',type:'DISPENSACIÓN',kind:'info',sev:'LISTA',ico:'pill',title:'Medicamento disponible para dispensación',desc:'Dispensación lista dentro de la ventana esperada.',actor:'Farmacia Castellana'}] },
+{ id:'ONC-2050', name:'Camilo Ortiz', initials:'CO', age:66, sex:'M', facility:'IPS 48', payer:'Compensar', dx:'Cáncer colorrectal', modality:'Infusión',
+  protocol:'ONC-CR-07', cycle:'6 / 12', priority:'MONITOR', cat:'ALTO COSTO', status:'Monitoreo alto costo',
+  reason:'Medicamento de alto costo en monitoreo continuo de tratamiento y adherencia.',
+  obs:'Terapia de alto costo bajo monitoreo. Sin desviaciones.', obsWarn:false,
+  next:'Ver monitoreo', nextRoute:'patient', due:'—', dueKind:'',
+  journey: jstages('Infusión',['done','done','done','done','done','current','upcoming'],['','','','','','ciclo 6','']),
+  team:{pharm:'Ximena Torres', onc:'Dr. Julián Mesa', nurse:'Equipo IPS 48'},
+  auth:{status:'Validada', ref:'AUT-CMP-75002', ts:'28 Ago', payer:'Compensar'},
+  clinical:mkClin('84 kg','1.79 m','2.02 m²','Perfil dentro de rango'), care:{prog:'Activo',last:'28 Ago · Ximena Torres',adher:'Adecuada',nextFu:'Post-ciclo 6'},
+  med:'Bevacizumab (infusión) — alto costo', nextTx:'Ciclo 6 en curso',
+  alert:{sev:'MONITOR',title:'Monitoreo de alto costo',param:'Categoría: medicamento de alto costo',criterion:'Monitoreo continuo de tratamientos de alto costo y su adherencia.',source:'Regla operativa de alto costo — Demo v3.2',created:'Hoy',reviewStatus:'Monitoreo de rutina'},
+  intervention:{date:'28 Ago',by:'Ximena Torres',cat:'Monitoreo alto costo',context:'Seguimiento de continuidad y trazabilidad.',action:'Trazabilidad verificada. Continuidad confirmada.',status:'Documentada'},
+  comms:[{ch:'phone',txt:'Confirmación de continuidad',ts:'28 Ago',status:'Confirmado'}],
+  summary:'Camilo está en ciclo 6 de 12 con un medicamento de alto costo bajo monitoreo continuo. La trazabilidad y continuidad están verificadas y no hay desviaciones registradas. Autorización vigente.',
+  cycles:[{c:'Ciclo 4',d:'17 Jul',s:'done'},{c:'Ciclo 5',d:'07 Ago',s:'done'},{c:'Ciclo 6',d:'En curso',s:'warn'},{c:'Ciclos 7-12',d:'—',s:'up'}],
+  history:[{t:'28 Ago',time:'10:40',type:'INTERVENCIÓN',kind:'ok',sev:'COMPLETADO',ico:'shield',title:'Monitoreo de alto costo',desc:'Trazabilidad y continuidad verificadas.',actor:'Ximena Torres'}] },
+{ id:'ONC-2033', name:'Natalia Suárez', initials:'NS', age:39, sex:'F', facility:'Teusaquillo', payer:'FOMAG', dx:'Cáncer de cuello uterino', modality:'IV',
+  protocol:'ONC-CX-01', cycle:'1 / 5', priority:'MONITOR', cat:'NUEVO PACIENTE', status:'Paciente nuevo',
+  reason:'Paciente nueva. Entrevista inicial de atención farmacéutica pendiente.',
+  obs:'Ingreso reciente. Onboarding en curso.', obsWarn:false,
+  next:'Realizar entrevista', nextRoute:'patient', due:'Esta semana', dueKind:'soon',
+  journey: jstages('IV',['done','current','upcoming','upcoming','upcoming','upcoming','upcoming'],['','entrevista','','','','','']),
+  team:{pharm:'Ximena Torres', onc:'Dra. Andrea Herrera', nurse:'Equipo Teusaquillo'},
+  auth:{status:'Recibida', ref:'AUT-FMG-34110', ts:'Hoy 09:00', payer:'FOMAG'},
+  clinical:mkClin('60 kg','1.58 m','1.62 m²','Perfil basal por documentar'), care:{prog:'Onboarding',last:'Sin contacto previo',adher:'No aplica aún',nextFu:'Entrevista inicial'},
+  med:'Cisplatino (IV) + radioterapia concurrente', nextTx:'Programación tras entrevista',
+  alert:{sev:'MONITOR',title:'Entrevista inicial pendiente',param:'Estado: paciente nueva',criterion:'Identificar pacientes nuevos que requieren entrevista inicial de atención farmacéutica.',source:'Programa de Atención Farmacéutica — Demo v3.2',created:'Hoy 09:00',reviewStatus:'Entrevista inicial requerida'},
+  intervention:{date:'—',by:'—',cat:'Sin intervenciones',context:'Paciente en onboarding.',action:'Pendiente de primera intervención.',status:'Pendiente'},
+  comms:[{ch:'phone',txt:'Agendamiento de entrevista',ts:'Por realizar',status:'Pendiente'}],
+  summary:'Natalia es una paciente nueva que inicia esquema IV. La autorización fue recibida hoy. Está pendiente la entrevista inicial de atención farmacéutica y la documentación del perfil basal antes de programar el primer ciclo.',
+  cycles:[{c:'Ciclo 1',d:'Por programar',s:'warn'},{c:'Ciclos 2-5',d:'—',s:'up'}],
+  history:[{t:'Hoy',time:'09:00',type:'AUTORIZACIÓN',kind:'ok',sev:'RECIBIDA',ico:'shield',title:'Autorización recibida',desc:'Autorización FOMAG registrada.',actor:'Mesa de control'}] }
+);
+const P_BY_ID = Object.fromEntries(PATIENTS.map(p=>[p.id,p]));
+
+/* ============ HELPERS ============ */
+const el = s=>document.querySelector(s);
+const esc = s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function priBadge(p){const m={HIGH:'hi',ACTION:'action',MONITOR:'monitor'};const lbl={HIGH:'Alta',ACTION:'Acción',MONITOR:'Monitoreo'};return `<span class="badge ${m[p]}">${lbl[p]||p}</span>`;}
+function priStripe(p){return {HIGH:'hi',ACTION:'action',MONITOR:'monitor'}[p]||'monitor';}
+function catBg(cat){
+  const map={'REVISIÓN CLÍNICA':['var(--info-bg)','var(--accent-ink)'],'REABASTECIMIENTO':['var(--warn-bg)','#B26A05'],'PENDIENTE':['var(--warn-bg)','#B26A05'],'NUEVO PACIENTE':['var(--ok-bg)','#1F7A4E'],'AUTORIZACIÓN':['var(--warn-bg)','#B26A05'],'SEGUIMIENTO':['var(--warn-bg)','#B26A05'],'PROGRAMADO':['var(--neutral-bg)','#556280'],'REVISADO':['var(--ok-bg)','#1F7A4E'],'APLICACIÓN':['var(--neutral-bg)','#556280'],'DISPENSACIÓN':['var(--neutral-bg)','#556280'],'ALTO COSTO':['var(--neutral-bg)','#556280']};
+  const c=map[cat]||['var(--surface-2)','var(--ink-2)'];return `<span class="cat" style="background:${c[0]};color:${c[1]}">${esc(cat)}</span>`;}
+function tag(ico,txt){return `<span class="tag"><span class="t-ico">${I[ico]||''}</span>${esc(txt)}</span>`;}
+function journeyHTML(p){
+  return `<div class="journey">`+p.journey.map(st=>{
+    const cls=st.state==='done'?'done':st.state==='current'?'current':st.state==='warning'?'warning':st.state==='blocked'?'blocked':'';
+    const lineDone=(st.state==='done')?'done':'';
+    const glyph=st.state==='done'?I.check:'';
+    return `<div class="jstage ${cls}"><span class="jline ${lineDone}"></span><span class="jdot">${glyph}</span><span class="jlabel">${esc(st.label)}</span>${st.sub?`<span class="jsub">${esc(st.sub)}</span>`:''}</div>`;
+  }).join('')+`</div>`;}
+function chSmall(ch){const m={wa:'wa',phone:'phone','in':'loc'};return I[m[ch]||'msg'];}
+function commStatus(s){const ok=['Entregado','Confirmado','Programado'];const warn=['Pendiente','Sin respuesta','Por enviar','En gestión','Por realizar'];
+  if(ok.includes(s))return `<span class="badge ok" style="height:18px">${esc(s)}</span>`;
+  if(warn.includes(s))return `<span class="badge action" style="height:18px">${esc(s)}</span>`;
+  return `<span class="badge plain" style="height:18px">${esc(s)}</span>`;}
+
+/* ============ STATE + ROUTER ============ */
+const STATE={view:'hoy', patient:'ONC-2041', ptab:'resumen',
+  jf:{q:'',sede:'',conv:'',mod:'',est:'',pri:'',seg:'todos'},
+  cf:{chip:'todos',sede:'',conv:'',mod:''},
+  of:{sede:'',conv:'',est:'',mod:'',pri:''}, askAns:null};
+
+const NAV=[
+  {g:'HOY'},{k:'hoy',label:'Hoy',ico:'home'},
+  {g:'ATENCIÓN'},{k:'patients',label:'Pacientes',ico:'users'},{k:'journeys',label:'Journeys',ico:'route'},
+  {g:'MEDICACIÓN'},{k:'medication',label:'Gestión de Medicamentos',ico:'pill'},{k:'clinical',label:'Revisión Clínica',ico:'stethoscope',badge:'8'},
+  {g:'OPERACIÓN'},{k:'tasks',label:'Tareas',ico:'check'},{k:'comms',label:'Comunicaciones',ico:'msg'},{k:'ops',label:'Operaciones de Medicación',ico:'box',badge:'7',bcrit:false},
+  {g:'INTELIGENCIA'},{k:'analytics',label:'Analítica',ico:'chart'},
+  {g:'ADMINISTRACIÓN'},{k:'config',label:'Configuración',ico:'gear'},
+];
+
+function navItems(){
+  return NAV.map(n=>{
+    if(n.g)return `<div class="nav-group">${n.g}</div>`;
+    const active=(n.k===STATE.view||(STATE.view==='patient'&&n.k==='patients'))?'active':'';
+    const badge=n.badge?`<span class="nav-badge ${n.bcrit?'crit':''}">${n.badge}</span>`:'';
+    return `<button class="nav-item ${active}" data-nav="${n.k}">${I[n.ico]}<span>${n.label}</span>${badge}</button>`;
+  }).join('');
+}
+function shell(inner){
+  return `<div class="app">
+   <aside class="sidebar">
+     <div class="brand"><div class="brand-row"><div class="brand-mark">K</div>
+       <div><div class="brand-name">Kumpels</div><div class="brand-sub">Core · Oncology Care</div></div></div>
+       <div class="org-chip" title="Organización activa"><div><div class="o-name">${CFG.org}</div><div class="o-sub">Organización · ${CFG.facility}</div></div><span class="chev">${I.chevD}</span></div>
+     </div>
+     <nav class="nav">${navItems()}</nav>
+   </aside>
+   <div class="main">
+     <div class="topbar">
+       <div class="search"><span class="s-ico">${I.search}</span><input placeholder="Buscar paciente, ID, protocolo…" data-globalsearch></div>
+       <div class="top-spacer"></div>
+       <button class="ask-btn" data-ask-open><span class="spark">${I.spark}</span>Ask Kumpels</button>
+       <button class="icon-btn" title="Notificaciones">${I.bell}<span class="dot"></span></button>
+       <button class="user-chip"><span class="avatar">${CFG.user.initials}</span><div style="text-align:left"><div class="u-name">${CFG.user.name}</div><div class="u-role">${CFG.user.role}</div></div><span class="chev" style="color:var(--muted-2)">${I.chevD}</span></button>
+     </div>
+     <div class="content">${inner}</div>
+   </div>
+  </div>`;
+}
+function render(){
+  let inner='';
+  switch(STATE.view){
+    case 'hoy': inner=viewHoy(); break;
+    case 'journeys': inner=viewJourneys(); break;
+    case 'patients': inner=viewJourneys(true); break;
+    case 'patient': inner=viewPatient(); break;
+    case 'clinical': inner=viewClinical(); break;
+    case 'ops': inner=viewOps(); break;
+    case 'analytics': inner=viewAnalytics(); break;
+    default: inner=viewStub();
+  }
+  el('#app-root').innerHTML=shell(inner);
+  window.scrollTo(0,0);
+}
+
+/* ============ SCREEN 1 — HOY ============ */
+function kpi(label,val,cls,foot){return `<div class="kpi ${cls||''}"><span class="k-accent"></span><div class="k-label">${label}</div><div class="k-val tnum">${val}</div>${foot?`<div class="k-foot">${foot}</div>`:''}</div>`;}
+function viewHoy(){
+  const queue=['ONC-2041','ONC-2018','ONC-2002','ONC-2037','ONC-2055','ONC-2011'].map(id=>P_BY_ID[id]);
+  const kpis=[
+    kpi('Pacientes oncológicos activos','412','calm','En 3 sedes'),
+    kpi('Tratamientos hoy','33','calm','8 en preparación'),
+    kpi('Revisiones farmacéuticas pendientes','8','attn','2 de alta prioridad'),
+    kpi('Reabastecimientos / aplicaciones próximas','12','calm','Próximos 7 días'),
+    kpi('Pendientes de medicamento','7','attn','3 sin notificar'),
+    kpi('Seguimientos vencidos','9','crit','Requieren contacto'),
+  ].join('');
+  const pq=queue.map(p=>`
+    <div class="pq-item" data-open="${p.id}">
+      <div class="pq-stripe ${priStripe(p.priority)}"></div>
+      <div class="pq-body">
+        <div class="pq-top"><span class="pq-name">${esc(p.name)}</span><span class="pq-id mono">${p.id}</span>${catBg(p.cat)}${priBadge(p.priority)}</div>
+        <div class="pq-reason">${esc(p.reason)}</div>
+        <div class="pq-meta">${tag('loc',p.facility)}${tag('card',p.payer)}${tag('drop',p.modality)}${p.due&&p.dueKind?`<span class="pq-due ${p.dueKind}">${I.clock} ${esc(p.due)}</span>`:''}</div>
+      </div>
+      <div class="pq-right">
+        <div class="pq-next">Siguiente<b>${esc(p.next)}</b></div>
+        <button class="next-btn" data-open="${p.id}">${esc(p.next)} ${I.chevR}</button>
+      </div>
+    </div>`).join('');
+  const sched=[
+    {t:'08:00',n:'Julián Castro',s:'R-CHOP · IV — Ciclo 3',f:'Castellana',st:'ok',stt:'Preparación en curso'},
+    {t:'09:30',n:'Sofía Herrera',s:'Carboplatino+Paclitaxel · IV — Ciclo 5',f:'IPS 48',st:'ok',stt:'En administración'},
+    {t:'10:30',n:'Andrés Vargas',s:'Pembrolizumab · Infusión — Ciclo 3',f:'IPS 48',st:'action',stt:'Autorización pendiente'},
+    {t:'12:00',n:'Valentina Ríos',s:'Tamoxifeno · Dispensación oral',f:'Castellana',st:'ok',stt:'Lista para dispensación'},
+    {t:'14:00',n:'Laura Martínez',s:'Esquema AC · IV — Ciclo 5',f:'IPS 48',st:'info',stt:'En espera de revisión'},
+  ].map(r=>`<div class="sched-row" ${r.n==='Laura Martínez'?'data-open="ONC-2041"':r.n==='Andrés Vargas'?'data-open="ONC-2055"':''}>
+      <div class="sched-time mono">${r.t}</div>
+      <div class="sched-main"><div class="sm-name">${esc(r.n)}</div><div class="sm-sub">${esc(r.s)} · ${esc(r.f)}</div></div>
+      <div>${r.st==='ok'?`<span class="badge ok">${esc(r.stt)}</span>`:r.st==='action'?`<span class="badge action">${esc(r.stt)}</span>`:`<span class="badge info">${esc(r.stt)}</span>`}</div>
+    </div>`).join('');
+  const snap=[
+    {n:4,t:'autorizaciones pendientes',c:'var(--warn)'},
+    {n:3,t:'tratamientos en espera de medicamento',c:'var(--warn)'},
+    {n:2,t:'preparaciones con retraso',c:'var(--crit)'},
+    {n:5,t:'seguimientos por vencer hoy',c:'var(--accent)'},
+  ].map(s=>`<div class="opsnap-row"><span class="opsnap-num" style="color:${s.c}">${s.n}</span><span class="os-txt">${esc(s.t)}</span></div>`).join('');
+
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">Hoy</h1><div class="page-sub">Vista operacional de la atención oncológica.</div></div>
+    <div class="page-meta"><strong>Lunes, 7 de septiembre</strong>Asisfarma · Bogotá</div>
+  </div>
+  <div class="kpi-row" style="grid-template-columns:repeat(6,1fr)">${kpis}</div>
+  <div class="grid" style="grid-template-columns:1fr 340px;align-items:start">
+    <div class="stack">
+      <div class="card">
+        <div class="section-head"><div><div class="section-title">Requiere tu atención</div><div class="section-desc" style="margin-top:2px">Pacientes priorizados según estado clínico y operacional.</div></div><span class="badge action">${queue.length} priorizados</span></div>
+        <div class="pq">${pq}</div>
+      </div>
+      <div class="card">
+        <div class="section-head"><div class="section-title">Tratamientos de hoy <span class="st-sub">33 programados · 5 destacados</span></div><button class="btn-sm" data-nav="journeys">Ver journeys ${I.chevR}</button></div>
+        <div class="sched">${sched}</div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card">
+        <div class="section-head"><div class="section-title">Estado operacional</div></div>
+        <div class="opsnap">${snap}</div>
+      </div>
+      <div class="summary-box">
+        <div class="sb-head">${I.spark} Kumpels Insights</div>
+        <div class="sb-body" style="font-size:12.5px">IPS 48 concentra el mayor volumen de pacientes que requieren revisión farmacéutica hoy. La mayoría de las revisiones priorizadas se originaron en <b>cambios de tratamiento</b>.</div>
+        <div class="sb-note">${I.shield} Observaciones operacionales. No constituyen recomendación clínica.</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+/* ============ SCREEN 2 — JOURNEYS ============ */
+function journeyCard(p){
+  const cyc=(p.cycle&&p.cycle!=='Continuo')?`<span class="tag">${I.refresh} Ciclo ${esc(p.cycle)}</span>`:'';
+  return `<div class="jcard" data-open="${p.id}">
+    <div class="jc-head">
+      <div class="jc-idn"><span class="jc-name">${esc(p.name)}</span><span class="pq-id mono">${p.id}</span></div>
+      <div class="jc-badges">${catBg(p.cat)}${priBadge(p.priority)}</div>
+    </div>
+    <div class="jc-meta">${tag('drop',p.dx)}${tag('pill',p.modality)}${cyc}${tag('loc',p.facility)}${tag('card',p.payer)}</div>
+    <div class="jc-journey">${journeyHTML(p)}</div>
+    <div class="jc-foot">
+      <div class="jc-next"><span class="lbl">Siguiente acción</span><span class="val">${I.arrow} ${esc(p.next)}${p.due?` · ${esc(p.due)}`:''}</span></div>
+      <div class="jc-obs ${p.obsWarn?'warn':''}">${esc(p.obs)}</div>
+    </div>
+  </div>`;
+}
+function jFilter(){
+  const f=STATE.jf;
+  return PATIENTS.filter(p=>{
+    if(f.seg==='atencion'&&p.priority==='MONITOR')return false;
+    if(f.seg==='hoy'&&!(p.due==='Hoy'||(p.cat==='PROGRAMADO')||p.name==='Laura Martínez'))return false;
+    if(f.sede&&p.facility!==f.sede)return false;
+    if(f.conv&&p.payer!==f.conv)return false;
+    if(f.mod&&p.modality!==f.mod)return false;
+    if(f.pri&&p.priority!==f.pri)return false;
+    if(f.q){const q=f.q.toLowerCase();if(!(p.name.toLowerCase().includes(q)||p.id.toLowerCase().includes(q)||p.dx.toLowerCase().includes(q)||(p.protocol||'').toLowerCase().includes(q)))return false;}
+    return true;
+  });
+}
+function jResultsHTML(){
+  const list=jFilter();
+  if(!list.length)return `<div class="card"><div class="empty">Sin journeys que coincidan con los filtros seleccionados.</div></div>`;
+  return `<div class="jcards">${list.map(journeyCard).join('')}</div>`;
+}
+function sel(name,val,opts,ph){return `<div class="fsel"><select class="fsel-el" data-jf="${name}"><option value="">${ph}</option>${opts.map(o=>`<option ${val===o?'selected':''}>${o}</option>`).join('')}</select></div>`;}
+function viewJourneys(isPatients){
+  const f=STATE.jf;
+  const seg=(k,l)=>`<button class="${f.seg===k?'on':''}" data-jseg="${k}">${l}</button>`;
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">${isPatients?'Pacientes':'Journeys de tratamiento'}</h1><div class="page-sub">Seguimiento longitudinal de episodios oncológicos activos.</div></div>
+    <div class="page-meta"><strong>${PATIENTS.length} episodios activos</strong>Asisfarma · Bogotá</div>
+  </div>
+  <div class="filterbar">
+    <div class="f-search"><span class="s-ico">${I.search}</span><input placeholder="Buscar paciente…" value="${esc(f.q)}" data-jf="q" data-live></div>
+    ${sel('sede',f.sede,CFG.facilities,'Sede')}
+    ${sel('conv',f.conv,CFG.payers,'Convenio')}
+    ${sel('mod',f.mod,['IV','Infusión','Oral','SC'],'Tratamiento')}
+    ${sel('pri',f.pri,['HIGH','ACTION','MONITOR'],'Prioridad')}
+    <div class="seg">${seg('todos','Todos')}${seg('atencion','Requieren atención')}${seg('hoy','Hoy')}</div>
+  </div>
+  <div id="jresults">${jResultsHTML()}</div>`;
+}
+
+/* ============ SCREEN 3 — PATIENT 360 ============ */
+function viewPatient(){
+  const p=P_BY_ID[STATE.patient]; if(!p)return viewStub();
+  const tabs=['resumen','tratamiento','clinicos','alertas','intervenciones','historial'];
+  const tlabel={resumen:'Resumen',tratamiento:'Tratamiento',clinicos:'Datos clínicos',alertas:'Alertas',intervenciones:'Intervenciones',historial:'Historial'};
+  const cyc=(p.cycle&&p.cycle!=='Continuo')?`<span class="dot-sep"></span>Ciclo ${esc(p.cycle)}`:'';
+  const heroReason={HIGH:p.alert.criterion,ACTION:p.alert.criterion,MONITOR:p.alert.criterion}[p.priority];
+  const head=`
+    <div class="p360-head">
+      <div class="p360-top">
+        <div class="p360-id">
+          <div class="p360-av">${p.initials}</div>
+          <div>
+            <div class="p360-name">${esc(p.name)}</div>
+            <div class="p360-line"><span class="mono">${p.id}</span><span class="dot-sep"></span>${esc(p.dx)}<span class="dot-sep"></span>Protocolo ${esc(p.protocol)}${cyc}</div>
+            <div class="p360-line">${tag('loc',p.facility)}${tag('card',p.payer)}${tag('drop',p.modality+' · '+p.med.split('(')[0].trim())}</div>
+          </div>
+        </div>
+        <div class="p360-badges">${priBadge(p.priority)}${catBg(p.cat)}</div>
+      </div>
+      <div class="p360-team">
+        <div class="team-m"><div class="tm-lbl">Farmacéutica clínica</div><div class="tm-name"><span class="team-av">${initials(p.team.pharm)}</span>${esc(p.team.pharm)}</div></div>
+        <div class="team-m"><div class="tm-lbl">Oncología</div><div class="tm-name"><span class="team-av">${initials(p.team.onc)}</span>${esc(p.team.onc)}</div></div>
+        <div class="team-m"><div class="tm-lbl">Enfermería</div><div class="tm-name"><span class="team-av">${I.users}</span>${esc(p.team.nurse)}</div></div>
+      </div>
+    </div>`;
+  const hero=`
+    <div class="hero-action">
+      <div>
+        <div class="ha-lbl">Próxima acción</div>
+        <div class="ha-title">${esc(p.alert.title)}</div>
+        <div class="ha-when"><span class="hero-pill">${I.clock} ${esc(p.due||'Programar')}</span><span>${esc(p.priority==='HIGH'?'Antes del próximo tratamiento programado':'Gestión requerida')}</span></div>
+        <div class="ha-reason">${esc(heroReason)}</div>
+      </div>
+      <div class="ha-cta">
+        <button class="btn-primary" data-nav="${p.nextRoute==='patient'?'':''}" ${p.nextRoute==='clinical'?'data-nav="clinical"':p.nextRoute==='ops'?'data-nav="ops"':''}>${esc(p.next==='Revisar tratamiento'?'Iniciar revisión':p.next)}</button>
+        <div class="ha-status">${I.shield} ${esc(p.alert.reviewStatus)}</div>
+      </div>
+    </div>`;
+  const journeyBox=`<div class="card" style="padding:16px 18px;margin-bottom:16px"><div class="section-title" style="margin-bottom:16px;font-size:13px">Journey del episodio <span class="st-sub">${esc(p.modality)}</span></div>${journeyHTML(p)}</div>`;
+  const tabbar=`<div class="tabs">${tabs.map(t=>`<button class="tab ${STATE.ptab===t?'on':''}" data-ptab="${t}">${tlabel[t]}</button>`).join('')}</div>`;
+  let body='';
+  if(STATE.ptab==='resumen')body=ptResumen(p);
+  else if(STATE.ptab==='tratamiento')body=ptTratamiento(p);
+  else if(STATE.ptab==='clinicos')body=ptClinicos(p);
+  else if(STATE.ptab==='alertas')body=ptAlertas(p);
+  else if(STATE.ptab==='intervenciones')body=ptInterv(p);
+  else if(STATE.ptab==='historial')body=ptHistorial(p);
+  const back=`<button class="btn-sm" data-nav="journeys" style="margin-bottom:14px">${I.chevR ? '<span style="transform:rotate(180deg);display:inline-flex">'+I.chevR+'</span>':''} Volver a Journeys</button>`;
+  return back+head+hero+journeyBox+tabbar+`<div id="ptab-body">${body}</div>`;
+}
+function initials(n){if(!n||n==='—')return '·';const parts=n.replace(/^(Dr|Dra|Dr\.|Dra\.)\s*/,'').trim().split(' ');return ((parts[0]||'')[0]||'')+((parts[1]||'')[0]||'');}
+
+function ptResumen(p){
+  const kvv=(k,v)=>`<div class="kv"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+  const commHTML=p.comms.map(c=>`<div style="display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px dashed var(--border-soft)"><span style="color:var(--muted-2)">${chSmall(c.ch)}</span><div style="flex:1;font-size:12.5px">${esc(c.txt)}<div class="subtle">${esc(c.ts)}</div></div>${commStatus(c.status)}</div>`).join('');
+  return `
+  <div class="two-col">
+    <div class="stack">
+      <div class="summary-box">
+        <div class="sb-head">${I.spark} Kumpels Summary</div>
+        <div class="sb-body">${esc(p.summary)}</div>
+        <div class="sb-note">${I.shield} Información de apoyo. No constituye una recomendación clínica autónoma. Decisión profesional requerida.</div>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr 1fr">
+        <div class="card info-card"><h4>${I.pill} Tratamiento actual</h4>
+          ${kvv('Protocolo',esc(p.protocol))}${kvv('Ciclo',esc(p.cycle))}${kvv('Medicamento',esc(p.med))}${kvv('Modalidad',esc(p.modality))}${kvv('Próximo tratamiento',esc(p.nextTx))}</div>
+        <div class="card info-card"><h4>${I.shield} Autorización</h4>
+          ${kvv('Estado',authBadge(p.auth.status))}${kvv('Convenio',esc(p.auth.payer))}${kvv('Referencia','<span class="mono">'+esc(p.auth.ref)+'</span>')}${kvv('Validada',esc(p.auth.ts))}</div>
+        <div class="card info-card"><h4>${I.drop} Contexto clínico</h4>
+          ${kvv('Alergias',esc(p.clinical.alergias))}${kvv('Peso',esc(p.clinical.peso))}${kvv('BSA',esc(p.clinical.bsa))}${kvv('Función renal',esc(p.clinical.renal))}${kvv('Laboratorios',esc(p.clinical.labs))}</div>
+        <div class="card info-card"><h4>${I.stethoscope} Atención farmacéutica</h4>
+          ${kvv('Programa',esc(p.care.prog))}${kvv('Último contacto',esc(p.care.last))}${kvv('Adherencia',esc(p.care.adher))}${kvv('Próximo seguimiento',esc(p.care.nextFu))}</div>
+      </div>
+    </div>
+    <div class="stack">
+      <div class="card info-card" style="padding:0">
+        <div class="section-head" style="padding:13px 15px"><div class="section-title" style="font-size:13px">Alerta activa</div><button class="btn-sm" data-ptab="alertas">Ver todas</button></div>
+        <div style="padding:13px 15px">${alertCard(p)}</div>
+      </div>
+      <div class="card info-card"><h4>${I.stethoscope} Última intervención</h4>${intervCard(p.intervention)}</div>
+      <div class="card info-card"><h4>${I.msg} Comunicaciones</h4>${commHTML||'<div class="subtle">Sin comunicaciones registradas.</div>'}</div>
+    </div>
+  </div>`;
+}
+function authBadge(s){const ok=['Validada','Recibida','No requerida'];if(ok.includes(s))return `<span class="badge ok" style="height:18px">${esc(s)}</span>`;if(s==='Pendiente')return `<span class="badge action" style="height:18px">${esc(s)}</span>`;return `<span class="badge plain" style="height:18px">${esc(s)}</span>`;}
+function alertCard(p){const a=p.alert;const warn=a.sev!=='HIGH';
+  return `<div class="alert-card ${warn?'warn':''}">
+    <div class="ac-top">${p.priority==='HIGH'?I.alert:I.shield}<span class="ac-title">${esc(a.title)}</span><span style="margin-left:auto">${sevBadge(a.sev)}</span></div>
+    <div class="ac-grid">
+      <div class="acg"><div class="lbl">Parámetro clínico</div><div class="val">${esc(a.param)}</div></div>
+      <div class="acg"><div class="lbl">Creada</div><div class="val mono">${esc(a.created)}</div></div>
+      <div class="acg full"><div class="lbl">Criterio configurado</div><div class="val">${esc(a.criterion)}</div></div>
+      <div class="acg full"><div class="lbl">Fuente</div><div class="val">${esc(a.source)}</div></div>
+    </div>
+    <div class="ac-foot">${I.shield} ${esc(a.reviewStatus)}</div>
+  </div>`;}
+function sevBadge(s){const m={HIGH:'hi',ACTION:'action',MONITOR:'monitor',COMPLETADO:'ok',INFO:'info',RECIBIDA:'ok'};return `<span class="badge ${m[s]||'plain'}">${esc(s)}</span>`;}
+function intervCard(iv){if(iv.by==='—')return `<div class="subtle">Sin intervenciones registradas para este episodio.</div>`;
+  return `<div class="iv-card"><div class="iv-top"><span class="iv-cat">${esc(iv.cat)}</span><span class="iv-date mono">${esc(iv.date)}</span></div>
+    <div class="iv-body"><b>Contexto.</b> ${esc(iv.context)}<br><b>Acción.</b> ${esc(iv.action)}</div>
+    <div class="iv-by">${I.stethoscope} ${esc(iv.by)} · <span class="badge plain" style="height:17px">${esc(iv.status)}</span></div></div>`;}
+
+function cycleDot(s){return s==='done'?'<span class="jdot" style="width:20px;height:20px;background:var(--ok);border-color:var(--ok);color:#fff;font-size:9px">'+I.check+'</span>':s==='warn'?'<span class="jdot" style="width:20px;height:20px;border-color:var(--warn);color:var(--warn);font-size:9px">•</span>':'<span class="jdot" style="width:20px;height:20px;font-size:9px">•</span>';}
+function ptTratamiento(p){
+  const rows=p.cycles.map((c,i)=>`<div style="display:flex;align-items:center;gap:14px;padding:11px 0;border-bottom:${i<p.cycles.length-1?'1px solid var(--border-soft)':'none'}">
+      ${cycleDot(c.s)}<div style="flex:1"><div style="font-weight:600;font-size:13px">${esc(c.c)}</div><div class="subtle">${esc(c.d)}</div></div>
+      ${c.s==='done'?'<span class="badge ok" style="height:18px">Completado</span>':c.s==='warn'?'<span class="badge action" style="height:18px">En curso / pendiente</span>':'<span class="badge plain" style="height:18px">Programado</span>'}</div>`).join('');
+  const changeBanner=p.status.includes('Cambio')?`<div class="jc-obs warn" style="max-width:none;text-align:left;margin-bottom:16px;display:flex;gap:9px;align-items:center">${I.alert} <b>Cambio de tratamiento registrado.</b> Nueva configuración de esquema añadida al episodio; visible en la línea de ciclos.</div>`:'';
+  return `<div class="two-col">
+    <div class="card info-card"><h4>${I.refresh} Historia de ciclos</h4>${changeBanner}${rows}</div>
+    <div class="stack">
+      <div class="card info-card"><h4>${I.pill} Medicación</h4>
+        <div class="kv"><span class="k">Esquema</span><span class="v">${esc(p.med)}</span></div>
+        <div class="kv"><span class="k">Modalidad</span><span class="v">${esc(p.modality)}</span></div>
+        <div class="kv"><span class="k">Protocolo</span><span class="v">${esc(p.protocol)}</span></div>
+        <div class="kv"><span class="k">Ciclo actual</span><span class="v">${esc(p.cycle)}</span></div>
+        <div class="kv"><span class="k">Próximo tratamiento</span><span class="v">${esc(p.nextTx)}</span></div>
+      </div>
+      <div class="card info-card"><h4>${I.drop} Administración</h4>
+        <div class="subtle" style="margin-bottom:10px">Registro longitudinal de administración del episodio.</div>
+        ${p.history.filter(h=>h.type==='MEDICACIÓN'||h.type==='APLICACIÓN'||h.type==='DISPENSACIÓN').map(h=>`<div class="kv"><span class="k">${esc(h.title)}</span><span class="v mono">${esc(h.t)} ${esc(h.time)}</span></div>`).join('')||'<div class="subtle">Sin administraciones registradas aún.</div>'}
+      </div>
+    </div>
+  </div>`;
+}
+function ptClinicos(p){
+  const c=p.clinical;const card=(t,ico,v,ts)=>`<div class="card info-card"><h4>${I[ico]} ${t}</h4><div style="font-size:15px;font-weight:600;color:var(--ink)">${v}</div>${ts?`<div class="subtle" style="margin-top:6px">${ts}</div>`:''}</div>`;
+  return `<div class="grid" style="grid-template-columns:repeat(3,1fr)">
+    ${card('Laboratorios clave','drop',esc(c.labs),'Actualizado hoy')}
+    ${card('Alergias','alert',esc(c.alergias),'')}
+    ${card('Función renal','drop',esc(c.renal),'')}
+    ${card('Función hepática','drop',esc(c.hepatica),'')}
+    ${card('Peso','users',esc(c.peso),'Registrado en último control')}
+    ${card('Superficie corporal (BSA)','users',esc(c.bsa),'Talla '+esc(c.talla))}
+    <div class="card info-card" style="grid-column:1/-1"><h4>${I.doc} Observaciones relevantes</h4>
+      <div style="font-size:12.5px;color:var(--ink-2);line-height:1.6">Perfil clínico sintético de demostración. Los valores se muestran para ilustrar el contexto que el farmacéutico revisa antes de evaluar la terapia. No se exponen recomendaciones ni ajustes de dosis automáticos.</div></div>
+  </div>`;
+}
+function ptAlertas(p){
+  return `<div class="stack">${alertCard(p)}
+    <div class="card info-card"><h4>${I.shield} Modelo de seguridad clínica</h4>
+      <div style="font-size:12.5px;color:var(--ink-2);line-height:1.6">Las alertas de Kumpels combinan <b>reglas determinísticas</b>, <b>conocimiento clínico estructurado</b> y <b>revisión profesional</b>. El sistema hace visible el criterio activado, el parámetro y la fuente; la decisión terapéutica corresponde siempre al profesional.</div></div>
+  </div>`;
+}
+function ptInterv(p){
+  const items=[p.intervention];
+  return `<div class="card" style="padding:16px 18px"><div class="section-title" style="margin-bottom:14px;font-size:13px">Intervenciones farmacéuticas</div>
+    <div class="stack">${items.map(iv=>iv.by==='—'?`<div class="subtle">Sin intervenciones registradas para este episodio. Paciente en proceso de onboarding.</div>`:intervCard(iv)).join('')}</div>
+    <div class="jc-obs" style="max-width:none;text-align:left;margin-top:16px;background:var(--surface-3);color:var(--ink-2)">${I.shield} Las intervenciones documentan el juicio profesional del farmacéutico. Kumpels no genera decisiones terapéuticas autónomas.</div>
+  </div>`;
+}
+function ptHistorial(p){
+  const rows=p.history.map(h=>`
+    <div class="tl-row">
+      <div class="tl-time"><b>${esc(h.t)}</b>${esc(h.time)}</div>
+      <div class="tl-rail"><span class="tl-node ${h.kind}">${I[h.ico]||I.doc}</span></div>
+      <div class="tl-card"><div class="tl-cardbox">
+        <div class="tl-chead"><span class="cat" style="background:var(--surface-2);color:var(--ink-2)">${esc(h.type)}</span>${sevBadge(h.sev)}<span class="tl-ttl">${esc(h.title)}</span></div>
+        <div class="tl-desc">${esc(h.desc)}</div>
+        <div class="tl-actor">${I.users} ${esc(h.actor)}</div>
+      </div></div>
+    </div>`).join('');
+  return `<div class="filterbar" style="margin-bottom:14px">
+      <div class="f-search"><span class="s-ico">${I.search}</span><input placeholder="Buscar evento…" data-noop></div>
+      ${sel('mod','',['Alerta','Autorización','Medicación','Intervención','Seguimiento'],'Tipo de evento')}
+      ${sel('pri','',['HIGH','ACTION','INFO','COMPLETADO'],'Severidad')}
+    </div>
+    <div class="card" style="padding:18px 20px"><div class="timeline">${rows}</div></div>`;
+}
+
+/* ============ SCREEN 4 — REVISIÓN CLÍNICA ============ */
+const REVIEW_IDS=['ONC-2041','ONC-2037','ONC-2018','ONC-2055','ONC-2011','ONC-2050','ONC-2033'];
+function reviewTrigger(p){
+  const m={'REVISIÓN CLÍNICA':'Cambio de tratamiento detectado. Un criterio clínico configurado requiere revisión antes del próximo ciclo.',
+    'NUEVO PACIENTE':'Paciente nuevo. Requiere conciliación de medicación y entrevista inicial de atención farmacéutica.',
+    'REABASTECIMIENTO':'Medicación oral fuera de la ventana esperada de reabastecimiento. Posible riesgo de adherencia.',
+    'SEGUIMIENTO':'Seguimiento programado vencido sin registro de contacto.',
+    'AUTORIZACIÓN':'Autorización requerida no recibida. Revisión de acceso al tratamiento.',
+    'ALTO COSTO':'Medicamento de alto costo en monitoreo de continuidad y adherencia.'};
+  return m[p.cat]||p.reason;
+}
+function cfFilter(){
+  const f=STATE.cf;
+  let list=REVIEW_IDS.map(id=>P_BY_ID[id]);
+  const chip=f.chip;
+  list=list.filter(p=>{
+    if(chip==='alta'&&p.priority!=='HIGH')return false;
+    if(chip==='cambios'&&p.cat!=='REVISIÓN CLÍNICA')return false;
+    if(chip==='nuevos'&&p.cat!=='NUEVO PACIENTE')return false;
+    if(chip==='alertas'&&!(p.priority==='HIGH'))return false;
+    if(chip==='seguimiento'&&!(p.cat==='SEGUIMIENTO'||p.cat==='REABASTECIMIENTO'))return false;
+    if(chip==='altocosto'&&p.cat!=='ALTO COSTO')return false;
+    if(f.sede&&p.facility!==f.sede)return false;
+    if(f.conv&&p.payer!==f.conv)return false;
+    if(f.mod&&p.modality!==f.mod)return false;
+    return true;
+  });
+  const order={HIGH:0,ACTION:1,MONITOR:2};
+  return list.sort((a,b)=>order[a.priority]-order[b.priority]);
+}
+function reviewCard(p){
+  const cyc=(p.cycle&&p.cycle!=='Continuo')?`Ciclo ${esc(p.cycle)}`:'Tratamiento continuo';
+  const ai=`<button class="btn-sm ai" data-explain="${p.id}">${I.spark} Explicar alerta</button>`;
+  return `<div class="rcard ${priStripe(p.priority)}">
+    <div class="rc-head">
+      <div class="rc-idn">
+        <div class="rc-title">${sevBadge(p.priority)}<span class="rc-h">${esc(p.alert.title)}</span></div>
+        <div class="rc-sub"><b style="color:var(--ink)">${esc(p.name)}</b><span class="mono">${p.id}</span><span class="dot-sep" style="width:3px;height:3px;border-radius:50%;background:var(--muted-2);display:inline-block"></span>${esc(p.dx)} · ${esc(p.protocol)} · ${cyc}</div>
+      </div>
+      <div class="jc-badges">${tag('loc',p.facility)}${tag('card',p.payer)}</div>
+    </div>
+    <div class="rc-grid">
+      <div class="rcg trig"><div class="lbl">${I.alert} Motivo (trigger)</div><div class="txt">${esc(reviewTrigger(p))}</div></div>
+      <div class="rcg"><div class="lbl">${I.drop} Parámetro clínico</div><div class="txt">${esc(p.alert.param)}</div></div>
+      <div class="rcg"><div class="lbl">${I.shield} Criterio configurado</div><div class="txt">${esc(p.alert.criterion)}</div></div>
+      <div class="rcg"><div class="lbl">${I.doc} Fuente</div><div class="txt">${esc(p.alert.source)}</div></div>
+    </div>
+    <div class="rc-foot">
+      <span class="status-txt">${I.shield} ${esc(p.alert.reviewStatus)}</span>
+      ${p.priority==='HIGH'?ai:''}
+      <button class="btn-sm" data-open="${p.id}">Abrir paciente</button>
+      <button class="btn-sm" data-explain="${p.id}">Documentar intervención</button>
+      <button class="btn-sm primary" data-open="${p.id}">Revisar ${I.chevR}</button>
+    </div>
+  </div>`;
+}
+function cfResults(){const list=cfFilter();if(!list.length)return `<div class="card"><div class="empty">Sin casos que coincidan con los filtros.</div></div>`;return `<div class="rq">${list.map(reviewCard).join('')}</div>`;}
+function viewClinical(){
+  const f=STATE.cf;
+  const chip=(k,l,n)=>`<button class="chip ${f.chip===k?'on':''}" data-cf-chip="${k}">${l}<span class="c-count mono">${n}</span></button>`;
+  const kpis=[kpi('Pendientes','8','attn'),kpi('Alta prioridad','2','crit'),kpi('Nuevos pacientes','2','good'),kpi('Cambios de tratamiento','3','calm'),kpi('Seguimientos vencidos','9','attn')].join('');
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">Revisión Clínica <span class="page-sub" style="display:inline;font-size:14px;color:var(--muted)">· Medication Intelligence</span></h1><div class="page-sub">Pacientes priorizados por criterios clínicos, cambios de tratamiento y necesidades de seguimiento.</div></div>
+  </div>
+  <div class="kpi-row" style="grid-template-columns:repeat(5,1fr)">${kpis}</div>
+  <div class="chips">
+    ${chip('todos','Todos',REVIEW_IDS.length)}
+    ${chip('alta','Alta prioridad',1)}
+    ${chip('cambios','Cambios de tratamiento',1)}
+    ${chip('nuevos','Nuevos pacientes',2)}
+    ${chip('alertas','Alertas clínicas',1)}
+    ${chip('seguimiento','Seguimiento',2)}
+    ${chip('altocosto','Alto costo',1)}
+  </div>
+  <div class="filterbar">
+    ${selCF('sede',f.sede,CFG.facilities,'Sede')}
+    ${selCF('conv',f.conv,CFG.payers,'Convenio')}
+    ${selCF('mod',f.mod,['IV','Infusión','Oral','SC'],'Tratamiento')}
+    <span class="subtle" style="margin-left:auto">Cola de revisión farmacéutica · ordenada por prioridad</span>
+  </div>
+  <div id="cfresults">${cfResults()}</div>`;
+}
+function selCF(name,val,opts,ph){return `<div class="fsel"><select class="fsel-el" data-cf="${name}"><option value="">${ph}</option>${opts.map(o=>`<option ${val===o?'selected':''}>${o}</option>`).join('')}</select></div>`;}
+
+/* ============ SCREEN 5 — OPERACIONES DE MEDICACIÓN ============ */
+const OPS_IDS=['ONC-2002','ONC-2055','ONC-2062','ONC-2007','ONC-2018','ONC-2050'];
+function opStatusOf(p){
+  return {'PENDIENTE':'Dispensación parcial','AUTORIZACIÓN':'Autorización pendiente','DISPENSACIÓN':'Listo para dispensación','APLICACIÓN':'Próxima aplicación','REABASTECIMIENTO':'Reabastecimiento vencido','ALTO COSTO':'En administración'}[p.cat]||p.status;
+}
+function ofFilter(){const f=STATE.of;return OPS_IDS.map(id=>P_BY_ID[id]).filter(p=>{
+  if(f.sede&&p.facility!==f.sede)return false;if(f.conv&&p.payer!==f.conv)return false;if(f.mod&&p.modality!==f.mod)return false;if(f.pri&&p.priority!==f.pri)return false;return true;});}
+function opRow(p){
+  const partial=p.cat==='PENDIENTE';
+  const prog=partial?`<div class="op-prog"><div class="prog-bar"><div class="prog-fill" style="width:66%"></div></div><span class="prog-txt">2/3</span></div>`:'';
+  return `<div class="oprow" data-open="${p.id}">
+    <div class="op-main"><div class="om-name">${esc(p.name)}<span class="pq-id mono">${p.id}</span>${statusBadgeOps(opStatusOf(p))}</div>
+      <div class="op-sub">${tag('loc',p.facility)}${tag('card',p.payer)}${tag('pill',p.modality)}<span class="subtle">${esc(p.med.split('(')[0].trim())}</span></div></div>
+    <div style="display:flex;align-items:center;gap:14px">${prog}<button class="next-btn">Ver caso ${I.chevR}</button></div>
+  </div>`;
+}
+function statusBadgeOps(s){const warn=['Dispensación parcial','Autorización pendiente','Reabastecimiento vencido'];const ok=['Listo para dispensación','En administración'];
+  if(warn.includes(s))return `<span class="badge action">${esc(s)}</span>`;if(ok.includes(s))return `<span class="badge ok">${esc(s)}</span>`;return `<span class="badge info">${esc(s)}</span>`;}
+function dianaDetail(){
+  const p=P_BY_ID['ONC-2002'];const o=p.ops;
+  const trace=o.trace.map((t,i)=>`<div class="tl-row"><div class="tl-time"><b>${esc((t.d||'').split(' ')[0]||'')}</b>${esc((t.d||'').split(' ').slice(1).join(' '))}</div>
+    <div class="tl-rail"><span class="tl-node ${t.s==='done'?'ok':t.s==='warn'?'warn':''}">${t.s==='done'?I.check:t.s==='warn'?I.alert:'•'}</span></div>
+    <div class="tl-card"><div class="tl-cardbox" style="padding:9px 12px"><div class="tl-ttl" style="font-size:12.5px">${esc(t.t)}</div></div></div></div>`).join('');
+  return `<div class="op-detail">
+    <div class="od-head">
+      <div><div style="display:flex;align-items:center;gap:10px"><span class="p360-av" style="width:40px;height:40px;font-size:15px;border-radius:10px">${p.initials}</span>
+        <div><div style="font-weight:700;font-size:16px">${esc(p.name)} <span class="pq-id mono">${p.id}</span></div>
+        <div class="op-sub" style="margin-top:3px">${tag('loc',p.facility)}${tag('card',p.payer)}${tag('pill',p.modality+' · '+p.med.split('(')[0].trim())}</div></div></div></div>
+      <div style="display:flex;gap:8px;align-items:center">${priBadge(p.priority)}<span class="badge action">Dispensación parcial</span></div>
+    </div>
+    <div class="od-grid">
+      <div class="od-cell"><div class="lbl">Ordenado</div><div class="val">${o.ordered} u</div></div>
+      <div class="od-cell"><div class="lbl">Dispensado</div><div class="val">${o.dispensed} u</div></div>
+      <div class="od-cell"><div class="lbl">Pendiente</div><div class="val warn">${o.pending} u</div></div>
+      <div class="od-cell"><div class="lbl">Disponibilidad estimada</div><div class="val sm">${esc(o.avail)}</div></div>
+      <div class="od-cell"><div class="lbl">Notificación paciente</div><div class="val sm warn">${esc(o.notify)}</div></div>
+      <div class="od-cell"><div class="lbl">Próxima aplicación</div><div class="val sm">${esc(o.nextApp)}</div></div>
+      <div class="od-cell"><div class="lbl">Responsable operativo</div><div class="val sm">${esc(o.owner)}</div></div>
+      <div class="od-cell"><div class="lbl">Última actualización</div><div class="val sm mono">${esc(o.lastUpd)}</div></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:0">
+      <div style="padding:16px 18px;border-right:1px solid var(--border-soft)">
+        <div class="section-title" style="font-size:13px;margin-bottom:14px">Trazabilidad del caso</div>
+        <div class="timeline">${trace}</div>
+      </div>
+      <div style="padding:16px 18px">
+        <div class="section-title" style="font-size:13px;margin-bottom:12px">Acciones</div>
+        <div class="stack" style="gap:9px">
+          <button class="btn-sm primary" style="justify-content:center" data-open="ONC-2002">Ver caso completo</button>
+          <button class="btn-sm" style="justify-content:center" data-toast="Contacto registrado con la paciente.">${I.phone} Registrar contacto</button>
+          <button class="btn-sm" style="justify-content:center" data-toast="Pendiente marcado para resolución.">${I.check} Resolver pendiente</button>
+        </div>
+        <div class="kv" style="margin-top:16px"><span class="k">Lote</span><span class="v mono">${esc(o.lot)}</span></div>
+        <div class="subtle" style="margin-top:8px">Información de inventario secundaria. Kumpels no reemplaza el sistema de inventario.</div>
+      </div>
+    </div>
+  </div>`;
+}
+function pendingSection(){
+  const rows=[P_BY_ID['ONC-2002']].map(p=>({n:p.name,med:'Trastuzumab SC 600 mg',q:'1 unidad',av:'Sep 5',f:p.facility,c:'Pendiente',d:2}))
+   .concat([{n:'Andrés Vargas',med:'Pembrolizumab',q:'1 ciclo',av:'Tras autorización',f:'IPS 48',c:'En gestión',d:3},
+            {n:'Marcela Díaz',med:'Filgrastim SC',q:'2 unidades',av:'Sep 6',f:'Teusaquillo',c:'Notificado',d:1},
+            {n:'Óscar Beltrán',med:'Rituximab',q:'1 vial',av:'Sep 9',f:'Castellana',c:'Pendiente',d:4}]);
+  const body=rows.map(r=>`<div class="oprow" style="grid-template-columns:1.4fr 1fr .7fr .8fr .9fr .5fr" ${r.n==='Diana Gómez'?'data-open="ONC-2002"':''}>
+    <div class="op-main"><div class="om-name" style="font-size:13px">${esc(r.n)}</div><div class="subtle" style="margin-top:2px">${esc(r.med)}</div></div>
+    <div class="op-sub" style="margin:0"><span class="badge plain" style="height:19px">${esc(r.q)} pend.</span></div>
+    <div style="font-size:12.5px;color:var(--ink-2)">${esc(r.av)}</div>
+    <div class="op-sub" style="margin:0">${tag('loc',r.f)}</div>
+    <div>${r.c==='Notificado'?`<span class="badge ok" style="height:19px">${r.c}</span>`:`<span class="badge action" style="height:19px">${r.c}</span>`}</div>
+    <div class="mono" style="font-size:12px;color:${r.d>=3?'var(--crit)':'var(--warn)'};font-weight:600">${r.d}d</div>
+  </div>`).join('');
+  return `<div class="card">
+    <div class="section-head"><div><div class="section-title">${I.box} Pendientes de medicamento</div><div class="section-desc" style="margin-top:2px">Seguimiento operativo de medicación pendiente por disponibilidad.</div></div><span class="badge action">7 activos</span></div>
+    <div style="display:grid;grid-template-columns:1.4fr 1fr .7fr .8fr .9fr .5fr;padding:9px 16px;border-bottom:1px solid var(--border-soft);font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:600">
+      <div>Paciente / Medicamento</div><div>Pendiente</div><div>Disponibilidad</div><div>Sede</div><div>Contacto</div><div>Días</div></div>
+    ${body}
+  </div>`;
+}
+function viewOps(){
+  const f=STATE.of;
+  const kpis=[kpi('Autorizaciones pendientes','4','attn'),kpi('Listos para dispensación','9','good'),kpi('Dispensaciones parciales','3','attn'),kpi('Listos para administración','6','calm'),kpi('Pendientes de medicamento','7','crit'),kpi('Aplicaciones próximas','12','calm')].join('');
+  const pipe=[['Prescripción',18,''],['Validación clínica',8,''],['Autorización',4,'hot'],['Disponibilidad',7,'hot'],['Preparación / Disp.',9,''],['Administración',6,''],['Seguimiento',5,'']]
+    .map((s,i,arr)=>`<div class="pstep ${s[2]}"><div class="ps-name">${s[0]}</div><div class="ps-count tnum">${s[1]}</div>${i<arr.length-1?`<span class="ps-arrow">${I.chevR}</span>`:''}</div>`).join('');
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">Operaciones de Medicación</h1><div class="page-sub">Visibilidad del acceso, dispensación, administración y pendientes del tratamiento.</div></div>
+  </div>
+  <div class="kpi-row" style="grid-template-columns:repeat(6,1fr)">${kpis}</div>
+  <div class="card" style="margin-bottom:16px">
+    <div class="section-head"><div class="section-title">Flujo operacional</div><div class="section-desc">Dónde están bloqueados los casos</div></div>
+    <div style="padding:14px 16px"><div class="pipeline">${pipe}</div></div>
+  </div>
+  ${dianaDetail()}
+  <div class="filterbar">
+    ${selOF('sede',f.sede,CFG.facilities,'Sede')}${selOF('conv',f.conv,CFG.payers,'Convenio')}${selOF('mod',f.mod,['IV','Infusión','Oral','SC'],'Tratamiento')}${selOF('pri',f.pri,['HIGH','ACTION','MONITOR'],'Prioridad')}
+    <span class="subtle" style="margin-left:auto">Casos operativos activos</span>
+  </div>
+  <div class="card" style="margin-bottom:16px"><div class="section-head"><div class="section-title">Casos operativos</div></div><div class="opcard" style="border:none">${ofFilter().map(opRow).join('')}</div></div>
+  ${pendingSection()}`;
+}
+function selOF(name,val,opts,ph){return `<div class="fsel"><select class="fsel-el" data-of="${name}"><option value="">${ph}</option>${opts.map(o=>`<option ${val===o?'selected':''}>${o}</option>`).join('')}</select></div>`;}
+
+/* ============ SCREEN 6 — ANALÍTICA ============ */
+function barRow(lbl,val,max,color){const pct=Math.round(val/max*100);return `<div class="bar-row"><div class="bar-lbl">${esc(lbl)}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}"></div></div><div class="bar-val tnum">${val}</div></div>`;}
+function donut(segs){ // segs: {label,val,color}
+  const total=segs.reduce((a,s)=>a+s.val,0);let acc=0;const r=52,c=2*Math.PI*r;
+  const arcs=segs.map(s=>{const frac=s.val/total;const dash=frac*c;const el=`<circle cx="70" cy="70" r="${r}" fill="none" stroke="${s.color}" stroke-width="18" stroke-dasharray="${dash} ${c-dash}" stroke-dashoffset="${-acc*c}" transform="rotate(-90 70 70)"/>`;acc+=frac;return el;}).join('');
+  const legend=segs.map(s=>`<div class="legend-item"><span class="legend-sw" style="background:${s.color}"></span>${esc(s.label)}<span class="legend-val tnum">${s.val}</span></div>`).join('');
+  return `<div class="donut-wrap"><svg width="140" height="140" viewBox="0 0 140 140">${arcs}<text x="70" y="66" text-anchor="middle" font-size="26" font-weight="700" fill="var(--ink)" font-family="var(--mono)">${total}</text><text x="70" y="86" text-anchor="middle" font-size="10" fill="var(--muted)" font-family="var(--sans)">pacientes</text></svg><div class="legend">${legend}</div></div>`;
+}
+function trendChart(){
+  const data=[62,58,66,71,68,74,79];const labels=['S1','S2','S3','S4','S5','S6','S7'];const max=90,min=50;const W=440,H=140,pad=24;
+  const pts=data.map((v,i)=>[pad+i*((W-pad*2)/(data.length-1)), H-pad-((v-min)/(max-min))*(H-pad*2)]);
+  const path=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+  const area=`M${pts[0][0]} ${H-pad} `+pts.map(p=>'L'+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ')+` L${pts[pts.length-1][0]} ${H-pad} Z`;
+  const grid=[0,1,2,3].map(g=>{const y=pad+g*((H-pad*2)/3);return `<line x1="${pad}" y1="${y}" x2="${W-pad}" y2="${y}" stroke="var(--border-soft)" stroke-width="1"/>`;}).join('');
+  const dots=pts.map((p,i)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="${i===pts.length-1?4:2.5}" fill="${i===pts.length-1?'var(--accent)':'#fff'}" stroke="var(--accent)" stroke-width="2"/>`).join('');
+  const xlab=labels.map((l,i)=>`<text x="${pts[i][0].toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="9" fill="var(--muted)">${l}</text>`).join('');
+  return `<div style="padding:16px"><svg width="100%" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet">${grid}<path d="${area}" fill="var(--accent-soft)" opacity=".7"/><path d="${path}" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round"/>${dots}${xlab}<text x="${pad}" y="14" font-size="9" fill="var(--muted)">% seguimientos completados · últimas 7 semanas</text></svg></div>`;
+}
+function viewAnalytics(){
+  const kA=[kpi('Pacientes nuevos','24','good','Últimos 30 días'),kpi('Cambios de tratamiento','31','calm','Últimos 30 días'),kpi('Revisiones farmacéuticas','186','calm','Últimos 30 días'),kpi('Intervenciones documentadas','142','good','Últimos 30 días')].join('');
+  const kB=[kpi('Seguimientos completados','78%','good','Meta 85%'),kpi('Reabastecimientos a tiempo','82%','calm','Meta 90%'),kpi('Fuera de ventana de seguimiento','12','attn','Pacientes')].join('');
+  const kC=[kpi('Tiempo promedio de validación','3.4 h','calm','Meta ≤ 4 h'),kpi('Autorizaciones pendientes','4','attn','Activas'),kpi('Pendientes de medicamento','7','attn','Activos'),kpi('Tratamientos retrasados','5','crit','Esta semana')].join('');
+  const insights=[
+    ['12 pacientes','no han regresado dentro de su ventana esperada de reabastecimiento.'],
+    ['Los pendientes de medicamento','representan el 31% de los retrasos operativos registrados esta semana.'],
+    ['La mayoría de las revisiones farmacéuticas priorizadas','esta semana se originaron en cambios de tratamiento.'],
+    ['IPS 48','concentra el mayor volumen de pacientes que requieren revisión farmacéutica hoy.'],
+  ].map(x=>`<div class="insight"><span class="in-ico">${I.bulb}</span><div class="in-txt"><b>${esc(x[0])}</b> ${esc(x[1])}</div></div>`).join('');
+  return `
+  <div class="page-head">
+    <div><h1 class="page-title">Analítica <span class="page-sub" style="display:inline;font-size:14px;color:var(--muted)">· Operational Intelligence</span></h1><div class="page-sub">Inteligencia clínica y operacional generada a partir del journey del paciente.</div></div>
+  </div>
+  <div class="filterbar">
+    ${miniSel('Últimos 30 días')}${miniSel('Todas las sedes')}${miniSel('Todos los convenios')}${miniSel('Todos los tratamientos')}
+  </div>
+  <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:700;margin:6px 2px 10px">Indicadores clínicos</div>
+  <div class="kpi-row an-grid">${kA}</div>
+  <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:700;margin:6px 2px 10px">Seguimiento y adherencia</div>
+  <div class="kpi-row" style="grid-template-columns:repeat(3,1fr)">${kB}</div>
+  <div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:700;margin:6px 2px 10px">Operación</div>
+  <div class="kpi-row an-grid">${kC}</div>
+  <div class="grid" style="grid-template-columns:1fr 1fr;margin-bottom:16px">
+    <div class="card"><div class="section-head"><div class="section-title">Pacientes por sede</div></div>
+      <div class="bars">${barRow('Compensar · IPS 48',168,180,'var(--navy)')}${barRow('Castellana',142,180,'var(--accent)')}${barRow('Teusaquillo',102,180,'#6E86EA')}</div></div>
+    <div class="card"><div class="section-head"><div class="section-title">Pacientes por convenio</div></div>
+      ${donut([{label:'Compensar',val:268,color:'var(--navy)'},{label:'FOMAG',val:112,color:'var(--accent)'},{label:'Otros',val:32,color:'#9AA6BB'}])}</div>
+    <div class="card"><div class="section-head"><div class="section-title">Modalidad de tratamiento</div></div>
+      <div class="bars">${barRow('Infusión / IV',196,240,'var(--navy)')}${barRow('Oral',124,240,'var(--accent)')}${barRow('SC / IM',92,240,'#6E86EA')}</div></div>
+    <div class="card"><div class="section-head"><div class="section-title">Tendencia de seguimiento</div></div>${trendChart()}</div>
+  </div>
+  <div class="card">
+    <div class="section-head"><div class="section-title">${I.spark} Kumpels Insights</div><span class="subtle">Observaciones operacionales derivadas de datos</span></div>
+    <div class="insight-list">${insights}</div>
+    <div style="padding:0 16px 14px"><div class="sb-note" style="font-size:11px;color:var(--muted);display:flex;align-items:center;gap:6px">${I.shield} Observaciones operacionales. No constituyen recomendaciones clínicas.</div></div>
+  </div>`;
+}
+function miniSel(t){return `<div class="fsel"><select class="fsel-el" data-noop><option>${esc(t)}</option></select></div>`;}
+
+/* ============ STUB ============ */
+function viewStub(){
+  const titles={patients:'Pacientes',medication:'Gestión de Medicamentos',tasks:'Tareas',comms:'Comunicaciones',config:'Configuración'};
+  const t=titles[STATE.view]||'Módulo';
+  return `<div class="page-head"><div><h1 class="page-title">${t}</h1><div class="page-sub">Módulo de la plataforma Kumpels Core.</div></div></div>
+    <div class="card"><div class="empty" style="padding:60px 40px">
+      <div style="width:52px;height:52px;border-radius:13px;background:var(--surface-2);display:flex;align-items:center;justify-content:center;color:var(--accent);margin:0 auto 16px">${I.box}</div>
+      <div style="font-size:15px;font-weight:600;color:var(--ink)">${t}</div>
+      <div style="max-width:44ch;margin:8px auto 0">Esta capacidad forma parte de Kumpels Core. En esta primera versión, la demostración se centra en Hoy, Journeys, Patient 360, Revisión Clínica, Operaciones y Analítica.</div>
+      <button class="btn-sm primary" data-nav="hoy" style="margin-top:18px">Ir a Hoy</button>
+    </div></div>`;
+}
+
+/* ============ ASK KUMPELS DRAWER ============ */
+const ASK_QA={
+  q1:{q:'¿Qué pacientes requieren atención hoy?',a:'Hoy hay <b>6 pacientes priorizados</b>. De alta prioridad: <b>Laura Martínez</b> (revisión clínica por cambio de tratamiento). Requieren acción: <b>Carlos Ramírez</b> (reabastecimiento vencido hace 4 días), <b>Diana Gómez</b> (pendiente de medicamento), <b>Andrés Vargas</b> (autorización pendiente) y <b>Marta Ruiz</b> (seguimiento vencido). En monitoreo: <b>Patricia López</b> (paciente nueva).'},
+  q2:{q:'¿Qué casos tienen pendientes de medicamento?',a:'Hay <b>7 pendientes de medicamento activos</b>. El caso destacado es <b>Diana Gómez</b>: dispensación parcial de Trastuzumab SC (2 de 3 unidades), con 1 unidad pendiente por disponibilidad (estimada Sep 5) y notificación al paciente pendiente. Próxima aplicación: Sep 8.'},
+  q3:{q:'Resume el episodio actual de Laura Martínez.',a:'Laura está en <b>ciclo 4 de 6</b> (protocolo ONC-BR-04, esquema AC IV). Ayer se registró un <b>cambio de tratamiento</b>. La autorización Compensar está activa. Un criterio clínico configurado requiere <b>revisión farmacéutica antes del próximo ciclo</b>. No hay pendientes de disponibilidad de medicamento. Revisión profesional requerida.'},
+};
+function askDrawer(){
+  const body= STATE.askAns ? `
+    <button class="dw-q" data-ask-reset>${I.chevR} Volver a preguntas sugeridas</button>
+    <div class="dw-a"><div class="a-q">${I.spark} ${esc(ASK_QA[STATE.askAns].q)}</div><div class="a-body">${ASK_QA[STATE.askAns].a}</div>
+      <div class="a-note">${I.shield} Respuesta de apoyo generada a partir del contexto operativo de la organización. No constituye recomendación clínica.</div></div>`
+    : `<div class="dw-hint">Preguntas sugeridas · contexto Asisfarma</div>
+       ${Object.keys(ASK_QA).map(k=>`<button class="dw-q" data-ask-q="${k}">${I.spark} ${esc(ASK_QA[k].q)}</button>`).join('')}
+       <div class="dw-hint" style="margin-top:8px">Sugerencias contextuales</div>
+       <button class="dw-q" data-ask-q="q1">¿Qué revisiones farmacéuticas están priorizadas?</button>`;
+  return `<div class="dw-head"><div class="dw-mark">${I.spark}</div><div><div class="dw-title">Ask Kumpels</div><div class="dw-sub">Asistente contextual · ${CFG.org}</div></div><button class="dw-close" data-ask-close>${I.x}</button></div>
+    <div class="dw-body">${body}</div>
+    <div class="dw-input"><input placeholder="Pregunta sobre pacientes, pendientes o journeys…" data-noop><button class="dw-send">${I.arrow}</button></div>`;
+}
+function openAsk(){el('#drawer').innerHTML=askDrawer();el('#drawer').classList.add('open');el('#scrim').classList.add('open');}
+function closeAsk(){el('#drawer').classList.remove('open');el('#scrim').classList.remove('open');STATE.askAns=null;}
+
+/* ============ TOAST ============ */
+let toastT;
+function toast(msg){
+  let t=el('#toast'); if(!t){t=document.createElement('div');t.id='toast';t.style.cssText='position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:var(--navy);color:#fff;padding:11px 18px;border-radius:10px;font-size:13px;font-weight:500;box-shadow:var(--shadow-lg);z-index:120;opacity:0;transition:opacity .2s,transform .2s;display:flex;align-items:center;gap:9px;max-width:90vw';document.body.appendChild(t);}
+  t.innerHTML=I.check+'<span>'+esc(msg)+'</span>';
+  requestAnimationFrame(()=>{t.style.opacity='1';t.style.transform='translateX(-50%) translateY(0)';});
+  clearTimeout(toastT);toastT=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(-50%) translateY(20px)';},2600);
+}
+
+/* ============ EVENTS ============ */
+function openPatient(id){STATE.patient=id;STATE.view='patient';STATE.ptab='resumen';render();}
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-open],[data-nav],[data-ptab],[data-jseg],[data-cf-chip],[data-explain],[data-ask-open],[data-ask-close],[data-ask-q],[data-ask-reset],[data-toast]');
+  if(!t)return;
+  if(t.hasAttribute('data-ask-close')){closeAsk();return;}
+  if(t.hasAttribute('data-ask-open')){openAsk();return;}
+  if(t.hasAttribute('data-ask-q')){STATE.askAns=t.getAttribute('data-ask-q');el('#drawer').innerHTML=askDrawer();return;}
+  if(t.hasAttribute('data-ask-reset')){STATE.askAns=null;el('#drawer').innerHTML=askDrawer();return;}
+  if(t.hasAttribute('data-explain')){const id=t.getAttribute('data-explain');openAsk();if(id==='ONC-2041'){STATE.askAns='q3';el('#drawer').innerHTML=askDrawer();}return;}
+  if(t.hasAttribute('data-toast')){toast(t.getAttribute('data-toast'));return;}
+  if(t.hasAttribute('data-ptab')){STATE.ptab=t.getAttribute('data-ptab');render();return;}
+  if(t.hasAttribute('data-jseg')){STATE.jf.seg=t.getAttribute('data-jseg');render();return;}
+  if(t.hasAttribute('data-cf-chip')){STATE.cf.chip=t.getAttribute('data-cf-chip');render();return;}
+  if(t.hasAttribute('data-open')){openPatient(t.getAttribute('data-open'));return;}
+  if(t.hasAttribute('data-nav')){const v=t.getAttribute('data-nav');if(!v)return;STATE.view=v;render();return;}
+});
+document.addEventListener('change',e=>{
+  const s=e.target;
+  if(s.hasAttribute('data-noop'))return;
+  if(s.hasAttribute('data-jf')){STATE.jf[s.getAttribute('data-jf')]=s.value;render();return;}
+  if(s.hasAttribute('data-cf')){STATE.cf[s.getAttribute('data-cf')]=s.value;const r=el('#cfresults');if(r)r.innerHTML=cfResults();return;}
+  if(s.hasAttribute('data-of')){STATE.of[s.getAttribute('data-of')]=s.value;render();return;}
+});
+document.addEventListener('input',e=>{
+  const s=e.target;
+  if(s.hasAttribute('data-live')&&s.getAttribute('data-jf')==='q'){STATE.jf.q=s.value;const r=el('#jresults');if(r)r.innerHTML=jResultsHTML();return;}
+});
+el('#scrim').addEventListener('click',closeAsk);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAsk();});
+
+/* ============ INIT ============ */
+render();
+</script>
