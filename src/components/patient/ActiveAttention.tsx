@@ -2,7 +2,6 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import type { Patient } from '../../types/patient'
 import type { Finding, ProfessionalReview } from '../../types/review'
-import { ORG } from '../../data/org'
 import { deriveActiveAttention } from '../../utils/resumen'
 import { useReviewStore } from '../../utils/reviewStore'
 import { usePersona } from '../../utils/personaStore'
@@ -20,9 +19,9 @@ import { ReviewModal } from './ReviewModal'
  */
 export function ActiveAttention({ patient }: { patient: Patient }) {
   const items = deriveActiveAttention(patient)
-  const { getReview } = useReviewStore()
+  const { getReview, getReviewHistory } = useReviewStore()
   const { getPatientPending } = useFulfillmentStore()
-  const { can } = usePersona()
+  const { can, actor } = usePersona()
   const navigate = useNavigate()
   const [active, setActive] = useState<Finding | null>(null)
 
@@ -103,7 +102,8 @@ export function ActiveAttention({ patient }: { patient: Patient }) {
         <ReviewModal
           finding={active}
           existing={getReview(active.id)}
-          reviewer={ORG.user.name}
+          history={getReviewHistory(active.id)}
+          reviewer={actor()}
           onSave={(r) => save(active, r)}
           onClose={() => setActive(null)}
         />

@@ -1,30 +1,30 @@
 import { useNavigate } from 'react-router-dom'
-import type { JourneyView, ProcessTrack } from '../../types/journey'
+import type { EpisodeJourney, StageOwner } from '../../types/journeyStage'
 import { CategoryChip, PriorityBadge, Tag } from '../Badge'
 import { Icon } from '../Icon'
-import { JourneyTimeline } from '../JourneyTimeline'
+import { JourneyStepper } from './JourneyStepper'
 
-const STATE_TEXT: Record<ProcessTrack['state'], string> = {
-  done: 'Completado', active: 'En curso', warning: 'Requiere atención', blocked: 'Bloqueado', pending: 'Pendiente', na: 'No aplica',
+const JOURNEY_LABEL: Record<EpisodeJourney['journeyType'], string> = {
+  'oncology-iv': 'Oncología IV', oral: 'Terapia oral', fulfillment: 'Dispensación',
+}
+const ownerText = (o?: StageOwner) => {
+  if (!o) return '—'
+  const un = !o.assignment || o.assignment === 'UNASSIGNED'
+  return `${o.label}${un ? ' · Sin asignar' : ''}`
 }
 
-function ProcessPill({ p }: { p: ProcessTrack }) {
-  return (
-    <span className={`ptrack ${p.state}`} title={`${p.name}: ${STATE_TEXT[p.state]}`}>
-      <span className="pt-dot" />
-      <span className="pt-name">{p.name}</span>
-      <span className="pt-state">· {p.note ?? STATE_TEXT[p.state]}</span>
-    </span>
-  )
-}
-
-/** Tarjeta de un episodio de tratamiento (journey). Abre Patient 360 al clic. */
-export function JourneyCard({ journey }: { journey: JourneyView }) {
+/**
+ * Tarjeta compacta de un episodio (lista de Journeys). Muestra lo mínimo legible:
+ * paciente, tratamiento, progreso horizontal compacto, etapa actual + responsable,
+ * próxima acción, indicador de vencimiento/retraso y bloqueo. Abre el detalle.
+ */
+export function JourneyCard({ journey }: { journey: EpisodeJourney }) {
   const navigate = useNavigate()
-  const open = () => navigate(`/patients/${journey.patientId}`)
+  const open = () => navigate(journey.href)
+  const cur = journey.currentStage
 
   return (
-    <div className="jcard" onClick={open} role="button" tabIndex={0}
+    <div className={`jcard ${journey.blocked ? 'blocked' : ''}`} onClick={open} role="button" tabIndex={0}
       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open() } }}>
       <div className="jc-head">
         <div className="jc-idn">
@@ -38,36 +38,40 @@ export function JourneyCard({ journey }: { journey: JourneyView }) {
       </div>
 
       <div className="jc-episode">
+        <Tag icon="route">{JOURNEY_LABEL[journey.journeyType]}</Tag>
         {journey.dx ? <Tag icon="drop">{journey.dx}</Tag> : null}
         <Tag icon="pill">{journey.modality}</Tag>
         {journey.protocol ? <Tag icon="shield">{journey.protocol}</Tag> : null}
-        {journey.cycleLabel ? <Tag icon="refresh">{journey.cycleLabel}</Tag> : null}
       </div>
 
       <div className="jc-journey">
-        <JourneyTimeline stages={journey.stages} />
+        <JourneyStepper stages={journey.stages} size="sm" />
       </div>
 
-      {/* Procesos que pueden estar activos de forma independiente */}
-      <div className="ptracks" aria-label="Procesos del episodio">
-        {journey.processes.map((p) => (
-          <ProcessPill key={p.name} p={p} />
-        ))}
-      </div>
-
-      <div className="jc-foot">
-        <div className="jc-next">
-          <span className="lbl">Etapa en foco · próxima acción</span>
-          <span className="val"><Icon name="arrow" size={14} /> {journey.currentStage} → {journey.next}</span>
-          <span className="who">{journey.owner}{journey.due ? ` · ${journey.due}` : ''}</span>
+      {/* Fila compacta: etapa actual · responsable · siguiente · próxima acción */}
+      <div className="jc-compact">
+        <div className="jcx">
+          <span className="jcx-k">Etapa actual</span>
+          <span className="jcx-v">{cur?.label ?? 'Al día'} <span className="jcx-o">· {ownerText(journey.currentOwner)}</span></span>
         </div>
-        {journey.exception ? (
-          <div className={`jc-exc ${journey.exception.kind}`}>
-            <span className="exc-ico"><Icon name="alert" size={13} /></span>
-            {journey.exception.text}
-          </div>
+        <div className="jcx">
+          <span className="jcx-k">Siguiente</span>
+          <span className="jcx-v">{journey.nextStage?.label ?? 'Cierre'} <span className="jcx-o">· {journey.nextOwner?.label ?? '—'}</span></span>
+        </div>
+      </div>
+
+      <div className="jc-foot2">
+        <span className="jc-na"><Icon name="spark" size={12} /> {journey.nextAction ?? 'Sin acción pendiente'}</span>
+        {journey.delay ? (
+          <span className={`jc-delay ${journey.delay.severe ? 'severe' : ''}`}><Icon name={journey.delay.severe ? 'alert' : 'clock'} size={11} /> {journey.delay.text}</span>
+        ) : cur?.dueAt ? (
+          <span className="jc-delay"><Icon name="clock" size={11} /> {cur.dueAt.replace('Hoy ', '')}</span>
         ) : null}
       </div>
+
+      {journey.blocked && cur?.blocker ? (
+        <div className="jc-blk-line"><Icon name="alert" size={12} /> {cur.blocker.label}{cur.blocker.responsible ? ` · ${cur.blocker.responsible}` : ''}</div>
+      ) : null}
     </div>
   )
 }

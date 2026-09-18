@@ -7,6 +7,9 @@ import { FollowUpSection } from '../components/patient/FollowUpSection'
 import { NextAction } from '../components/patient/NextAction'
 import { OperationSection } from '../components/patient/OperationSection'
 import { PreparationStatus } from '../components/patient/PreparationStatus'
+import { EpisodeJourneyView } from '../components/journey/EpisodeJourneyView'
+import { PatientReported } from '../components/patient/PatientReported'
+import { AdministrationPanel } from '../components/patient/AdministrationPanel'
 import { PatientHeader } from '../components/patient/PatientHeader'
 import { RecentActivity } from '../components/patient/RecentActivity'
 import { getPatient } from '../data/patients'
@@ -68,11 +71,18 @@ export function Patient360Page() {
         <NextAction patient={patient} />
       </section>
 
+      {/* Journey del episodio (misma proyección que la página de Journeys) */}
+      <section id="journey" className="p360-section">
+        <div className="section-lead"><Icon name="route" size={13} /> Journey del episodio</div>
+        <EpisodeJourneyView patient={patient} compact />
+      </section>
+
       {/* Atención activa (revisión clínica) */}
       {sees('atencion') ? (
         <section id="atencion" className="p360-section">
           <div className="section-lead"><Icon name="stethoscope" size={13} /> Atención activa</div>
           <ActiveAttention patient={patient} />
+          <PatientReported patient={patient} />
         </section>
       ) : null}
 
@@ -89,6 +99,7 @@ export function Patient360Page() {
         <section id="operacion" className="p360-section">
           <div className="section-lead"><Icon name="box" size={13} /> Operación</div>
           <PreparationStatus patient={patient} />
+          <AdministrationPanel patient={patient} />
           <OperationSection patient={patient} />
         </section>
       ) : null}

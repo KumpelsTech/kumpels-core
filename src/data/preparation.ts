@@ -77,7 +77,7 @@ export const PREPARATION_ORDERS: PreparationOrder[] = [
     medication: 'Doxorrubicina', prescribedDose: '60 mg/m² · 108 mg', approvedDose: '108 mg',
     route: 'IV', protocol: 'AC', cycleDay: 'Ciclo 4 · Día 1',
     presentation: 'Vial 50 mg', diluent: 'SSN 0.9% 100 mL', finalVolume: '100 mL',
-    administrationTime: 'Bolo IV lento', scheduledAt: 'Hoy 13:00', scheduledMinutes: 780,
+    administrationTime: 'Bolo IV lento', scheduledAt: 'Mañana 09:00', scheduledMinutes: 540,
     responsible: 'Central de Mezclas', container: 'Jeringa / bolsa 100 mL',
     requirements: [
       { key: 'orden-medica', label: 'Orden de medicación completa', met: true },
@@ -119,15 +119,15 @@ export const PREPARATION_ORDERS: PreparationOrder[] = [
     responsible: 'Central de Mezclas', container: 'Bolsa EVA 100 mL',
     requirements: [
       { key: 'orden-medica', label: 'Orden de medicación completa', met: true },
-      { key: 'autorizacion', label: 'Autorización vigente', met: false, responsible: 'Acceso / Autorizaciones', nextAction: 'Gestionar autorización' },
+      { key: 'autorizacion', label: 'Autorización vigente', met: true },
       { key: 'datos-paciente', label: 'Datos requeridos del paciente', met: true },
       { key: 'dosis-final', label: 'Dosis final confirmada', met: true },
       { key: 'info-preparacion', label: 'Información de preparación completa', met: true },
     ],
     events: [
       { at: '04 Sep', label: 'Orden de preparación recibida', state: 'done' },
-      { at: '04 Sep', label: 'Autorización solicitada — pendiente', state: 'warn' },
-      { at: '—', label: 'Preparación bloqueada hasta autorización', state: 'pending' },
+      { at: 'Hoy 14:18', label: 'Preparación liberada', state: 'done' },
+      { at: 'Hoy 14:40', label: 'Tratamiento administrado', state: 'done' },
     ],
   },
 ]
@@ -138,15 +138,24 @@ export const PREPARATION_ORDERS: PreparationOrder[] = [
  * como actores separados y trazables.
  */
 export const SEED_INSTANCES: Record<string, PreparationInstance> = {
+  // Camilo — liberada (lista para administrar).
   'PREP-3302': {
     id: 'PI-3302', orderId: 'PREP-3302', patientId: 'ONC-2050', medication: 'Bevacizumab',
     finalDose: '375 mg', concentration: '2.5 mg/mL', volume: '150 mL', container: 'Bolsa EVA 150 mL',
-    preparedBy: 'Q.F. Daniela Rueda', startedAt: 'Hoy 09:05',
+    preparedBy: 'Q.F. Daniela Rueda', startedAt: 'Hoy 09:05', completedAt: 'Hoy 09:35',
+    verifiedBy: 'Q.F. Andrés Mejía', verifiedAt: 'Hoy 09:44', releasedBy: 'Q.F. Andrés Mejía', releasedAt: 'Hoy 09:50',
   },
   'PREP-3303': {
     id: 'PI-3303', orderId: 'PREP-3303', patientId: 'ONC-2044', medication: 'Carboplatino',
     finalDose: '450 mg', concentration: '1.8 mg/mL', volume: '250 mL', container: 'Bolsa EVA 250 mL',
     preparedBy: 'Q.F. Andrés Mejía', startedAt: 'Hoy 10:40', completedAt: 'Hoy 11:05',
+  },
+  // Andrés — liberada y ADMINISTRADA (tratamiento completado).
+  'PREP-3306': {
+    id: 'PI-3306', orderId: 'PREP-3306', patientId: 'ONC-2055', medication: 'Pembrolizumab',
+    finalDose: '200 mg', concentration: '2 mg/mL', volume: '100 mL', container: 'Bolsa EVA 100 mL',
+    preparedBy: 'Q.F. Daniela Rueda', startedAt: 'Hoy 13:40', completedAt: 'Hoy 14:05',
+    verifiedBy: 'Q.F. Andrés Mejía', verifiedAt: 'Hoy 14:12', releasedBy: 'Q.F. Andrés Mejía', releasedAt: 'Hoy 14:18',
   },
 }
 

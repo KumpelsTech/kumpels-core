@@ -4,6 +4,7 @@ export type IconName =
   | 'home' | 'users' | 'route' | 'pill' | 'stethoscope' | 'check' | 'box' | 'chart' | 'gear' | 'msg'
   | 'search' | 'bell' | 'spark' | 'arrow' | 'chevR' | 'clock' | 'alert' | 'shield' | 'loc' | 'card'
   | 'drop' | 'refresh' | 'syringe' | 'calendar' | 'doc' | 'phone'
+  | 'x' | 'info' | 'lock' | 'dot' | 'panel' | 'kbd'
 
 const paths: Record<IconName, JSX.Element> = {
   home: <><path d="M3 10.5 12 3l9 7.5" /><path d="M5 9.5V21h14V9.5" /></>,
@@ -32,6 +33,12 @@ const paths: Record<IconName, JSX.Element> = {
   calendar: <><rect x="3.5" y="5" width="17" height="16" rx="2" /><path d="M3.5 9h17M8 3v4M16 3v4" /></>,
   doc: <><path d="M6 3h8l4 4v14H6z" /><path d="M14 3v4h4M9 13h6M9 17h6" /></>,
   phone: <path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L16 13l5 2v3a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" />,
+  x: <path d="M6 6l12 12M18 6 6 18" />,
+  info: <><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8v.5" /></>,
+  lock: <><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V8a4 4 0 0 1 8 0v3" /></>,
+  dot: <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none" />,
+  panel: <><rect x="3" y="4" width="18" height="16" rx="2" /><path d="M9 4v16" /></>,
+  kbd: <><rect x="3" y="6" width="18" height="12" rx="2" /><path d="M7 10h.01M11 10h.01M15 10h2M7 14h10" /></>,
 }
 
 interface IconProps {

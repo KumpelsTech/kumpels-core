@@ -2,8 +2,9 @@ import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import type { AdminUser, ClinicalConfigStatus, IntegrationStatus, RoleId, Scope } from '../types/admin'
 import { WORKSPACES, PERSONA_ORDER } from '../config/workspaces'
+import { CAPABILITY_LABEL, capabilitiesForRole } from '../config/capabilities'
 import {
-  CLINICAL_CONFIGS, FACILITIES, INTEGRATIONS, ORGANIZATION, PROGRAMS, TEAMS, getFacility, getTeam,
+  CLINICAL_CONFIGS, FACILITIES, INTEGRATIONS, ORGANIZATION, PROGRAMS, TEAMS, getFacility, getProgram, getTeam,
 } from '../data/admin'
 import { useAdminStore } from '../utils/adminStore'
 import { usePersona } from '../utils/personaStore'
@@ -145,21 +146,33 @@ function Usuarios({ actor }: { actor: string }) {
       <div className="section-head"><div className="section-title">Usuarios <span className="st-sub">{users.length}</span></div></div>
       <div className="cfg-table">
         <div className="cfg-hrow"><span>Usuario</span><span>Rol</span><span>Equipo</span><span>Alcance</span><span>Estado</span><span></span></div>
-        {users.map((u) => (
-          <div className="cfg-row" key={u.id}>
-            <div><div className="cfg-name">{u.name}</div><div className="cfg-mail">{u.email}</div></div>
-            <span className="cfg-cell">{roleLabel(u.role)}</span>
-            <span className="cfg-cell">{u.teamId ? getTeam(u.teamId)?.name : '—'}</span>
-            <span className="cfg-cell">{u.scope.facilityIds.length} sede(s){u.scope.programIds.length ? ` · ${u.scope.programIds.length} prog.` : ''}</span>
-            <span><Badge variant={u.status === 'activo' ? 'ok' : 'plain'}>{u.status === 'activo' ? 'Activo' : 'Inactivo'}</Badge></span>
-            <span className="cfg-actions">
-              <button type="button" className="btn sm" onClick={() => setEdit(u)}>Editar acceso</button>
-              <button type="button" className="btn sm" onClick={() => void services.admin.setUserStatus(u.id, u.status === 'activo' ? 'inactivo' : 'activo', actor)}>
-                {u.status === 'activo' ? 'Desactivar' : 'Activar'}
-              </button>
-            </span>
-          </div>
-        ))}
+        {users.map((u) => {
+          const caps = u.capabilities ?? capabilitiesForRole(u.role)
+          const facs = u.scope.facilityIds.map((f) => getFacility(f)?.name).filter(Boolean)
+          const progs = u.scope.programIds.map((p) => getProgram(p)?.name).filter(Boolean)
+          return (
+            <div className="cfg-urow" key={u.id}>
+              <div className="cfg-row">
+                <div><div className="cfg-name">{u.name}</div><div className="cfg-mail">{u.email}</div></div>
+                <span className="cfg-cell">{roleLabel(u.role)}</span>
+                <span className="cfg-cell">{u.teamId ? getTeam(u.teamId)?.name : '—'}</span>
+                <span className="cfg-cell">{facs.length > 1 ? 'Multi-sede' : (facs[0] ?? '—')}{progs.length ? ' · Oncología' : ''}</span>
+                <span><Badge variant={u.status === 'activo' ? 'ok' : 'plain'}>{u.status === 'activo' ? 'Activo' : 'Inactivo'}</Badge></span>
+                <span className="cfg-actions">
+                  <button type="button" className="btn sm" onClick={() => setEdit(u)}>Editar acceso</button>
+                  <button type="button" className="btn sm" onClick={() => void services.admin.setUserStatus(u.id, u.status === 'activo' ? 'inactivo' : 'activo', actor)}>
+                    {u.status === 'activo' ? 'Desactivar' : 'Activar'}
+                  </button>
+                </span>
+              </div>
+              <div className="cfg-caps">
+                <span className="cfg-caps-lbl">Capacidades</span>
+                {caps.map((c) => <span className="cap-chip" key={c}><Icon name="check" size={10} /> {CAPABILITY_LABEL[c]}</span>)}
+                {facs.length ? <span className="cfg-caps-scope">{facs.join(', ')}{progs.length ? ` · ${progs.join(', ')}` : ''}</span> : null}
+              </div>
+            </div>
+          )
+        })}
       </div>
       {edit ? <AccessModal user={edit} actor={actor} onClose={() => setEdit(null)} /> : null}
     </div>

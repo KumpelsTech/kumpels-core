@@ -38,7 +38,7 @@ export const PATIENTS: Patient[] = [
   },
   {
     id: 'ONC-2018', name: 'Carlos Ramírez', initials: 'CR', age: 68, sex: 'M',
-    facility: 'Castellana', payer: 'Compensar', dx: 'Cáncer de próstata', modality: 'Oral',
+    facility: 'IPS 48', payer: 'Compensar', dx: 'Cáncer de próstata', modality: 'Oral',
     protocol: 'ONC-PR-02', cycle: 'Continuo', priority: 'ACTION', category: 'REABASTECIMIENTO',
     status: 'Reabastecimiento vencido',
     reason: 'Reabastecimiento esperado hace 4 días. No se registra nueva dispensación.',
@@ -138,7 +138,7 @@ export const PATIENTS: Patient[] = [
   },
   {
     id: 'ONC-2011', name: 'Marta Ruiz', initials: 'MR', age: 63, sex: 'F',
-    facility: 'Teusaquillo', payer: 'FOMAG', dx: 'Cáncer gástrico', modality: 'Oral',
+    facility: 'IPS 48', payer: 'FOMAG', dx: 'Cáncer gástrico', modality: 'Oral',
     protocol: 'ONC-GA-01', cycle: 'Continuo', priority: 'ACTION', category: 'SEGUIMIENTO', status: 'Seguimiento vencido',
     reason: 'Seguimiento programado vencido. Sin registro de contacto en la ventana esperada.',
     obs: 'Seguimiento de adherencia vencido hace 3 días.', obsWarn: true,
@@ -161,7 +161,7 @@ export const PATIENTS: Patient[] = [
   },
   {
     id: 'ONC-2029', name: 'Julián Castro', initials: 'JC', age: 44, sex: 'M',
-    facility: 'Castellana', payer: 'Compensar', dx: 'Linfoma no Hodgkin', modality: 'IV',
+    facility: 'IPS 48', payer: 'Compensar', dx: 'Linfoma no Hodgkin', modality: 'IV',
     protocol: 'ONC-LY-06', cycle: '3 / 6', priority: 'MONITOR', category: 'PROGRAMADO', status: 'Tratamiento hoy',
     reason: 'Tratamiento programado para hoy. Preparación en curso.',
     obs: 'Ciclo programado hoy. Sin pendientes clínicos ni operativos.', obsWarn: false,

@@ -56,5 +56,12 @@ export interface ProfessionalReview {
   outcome: ReviewOutcome
   comment?: string
   by: string
+  /** Rol del profesional que decidió (atribución). */
+  role?: string
+  /** Etiqueta legible del momento ("14 sep 2026 · 10:42"). */
   at: string
+  /** Instante ISO tz-aware (persistencia). */
+  atIso?: string
+  /** Decisión previa cuando esta corrige/edita una anterior (append-only). */
+  previousOutcome?: ReviewOutcome
 }

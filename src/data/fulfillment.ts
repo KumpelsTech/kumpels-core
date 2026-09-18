@@ -46,7 +46,7 @@ export const BASE_FULFILLMENTS: Record<string, MedicationFulfillment> = {
     orderId: 'ORD-3007',
     dispenses: [],
     expectedAvailability: 'Sep 9', expectedDay: 9, communication: 'contactado',
-    contacts: [{ id: 'ct-seed-3007-1', at: '06 Sep 09:10', channel: 'Teléfono', result: 'Paciente avisado de la demora', nextStep: 'Reconfirmar disponibilidad' }],
+    contacts: [{ id: 'ct-seed-3007-1', at: '06 Sep 09:10', method: 'telefono', party: 'paciente', outcome: 'contactado', channel: 'Teléfono', result: 'Paciente avisado de la demora', nextStep: 'Reconfirmar disponibilidad' }],
     responsible: 'Farmacia Castellana', pendingSince: '05 Sep', daysPending: 6,
     nextNeedLabel: 'la próxima dispensación', nextNeedDay: 10,
     events: [
@@ -60,7 +60,7 @@ export const BASE_FULFILLMENTS: Record<string, MedicationFulfillment> = {
     orderId: 'ORD-3012',
     dispenses: [],
     expectedAvailability: 'Sep 12', expectedDay: 12, communication: 'informado',
-    contacts: [{ id: 'ct-seed-3012-1', at: '09 Sep 15:40', channel: 'WhatsApp', result: 'Paciente informado de la fecha estimada' }],
+    contacts: [{ id: 'ct-seed-3012-1', at: '09 Sep 15:40', method: 'whatsapp', party: 'paciente', outcome: 'contactado', channel: 'WhatsApp', result: 'Paciente informado de la fecha estimada' }],
     responsible: 'Farmacia Teusaquillo', pendingSince: '08 Sep', daysPending: 3,
     nextNeedLabel: 'la próxima dispensación', nextNeedDay: 14,
     events: [

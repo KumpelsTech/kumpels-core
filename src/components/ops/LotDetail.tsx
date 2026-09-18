@@ -31,7 +31,7 @@ export function LotDetail({ lotId, onClose }: { lotId: string; onClose: () => vo
         <div className="fact"><span className="fk">Estado</span><span className="fv">{LOT_STATUS_LABEL[lot.status]}</span></div>
         {lot.location ? <div className="fact"><span className="fk">Ubicación</span><span className="fv">{lot.location}</span></div> : null}
       </div>
-      <div className="ld-lead"><Icon name="route" size={13} /> Trazabilidad inversa · dónde terminó este lote</div>
+      <div className="ld-lead"><Icon name="route" size={13} /> Trazabilidad hacia adelante · producto → lote → preparación → mezcla final → paciente</div>
       {entries.length === 0 ? (
         <div className="subtle" style={{ padding: '4px 2px' }}>Este lote aún no se ha usado ni seleccionado en preparaciones.</div>
       ) : (
@@ -44,6 +44,7 @@ export function LotDetail({ lotId, onClose }: { lotId: string; onClose: () => vo
               <div className="ld-main">
                 <div className="ld-r-top"><span className="ld-pat">{e.patientName}</span> <span className="pq-id mono">{e.orderId}</span></div>
                 <div className="ld-r-sub">{e.used ? `Usado · ${e.quantity} · ${e.at}` : 'Seleccionado (aún no usado)'} · {e.prepStatusLabel}</div>
+                {e.finalBatch ? <div className="ld-r-batch"><Icon name="shield" size={11} /> Mezcla final <b className="mono">{e.finalBatch}</b></div> : null}
               </div>
               <Icon name="chevR" size={13} />
             </div>

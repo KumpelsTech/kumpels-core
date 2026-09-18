@@ -2,11 +2,15 @@ import { useSyncExternalStore } from 'react'
 import type { ProfessionalReview } from '../types/review'
 
 /**
- * Store en memoria de decisiones profesionales, indexado por finding id.
+ * Historia APPEND-ONLY de decisiones profesionales, indexada por finding id.
  * La detección automática (Finding) vive en data/review; la decisión humana
  * (ProfessionalReview) se registra aquí, separada. Persiste durante la sesión.
+ *
+ * No hay reemplazo silencioso: editar una decisión AÑADE un registro nuevo que
+ * conserva el previo (previousOutcome). `getReview` devuelve la decisión vigente
+ * (última); `getReviewHistory`, la traza completa.
  */
-const outcomes = new Map<string, ProfessionalReview>()
+const histories = new Map<string, ProfessionalReview[]>()
 const listeners = new Set<() => void>()
 let version = 0
 
@@ -19,12 +23,22 @@ function subscribe(l: () => void) {
   return () => listeners.delete(l)
 }
 
+/** Decisión vigente (la más reciente) sobre un hallazgo. */
 export function getReview(findingId: string): ProfessionalReview | undefined {
-  return outcomes.get(findingId)
+  const h = histories.get(findingId)
+  return h && h.length ? h[h.length - 1] : undefined
 }
 
+/** Historia completa de decisiones sobre un hallazgo (más antigua → más reciente). */
+export function getReviewHistory(findingId: string): ProfessionalReview[] {
+  return histories.get(findingId) ?? []
+}
+
+/** Registra una decisión NUEVA (no sobreescribe): conserva la anterior. */
 export function setReview(findingId: string, review: ProfessionalReview) {
-  outcomes.set(findingId, review)
+  const prev = getReview(findingId)
+  const entry: ProfessionalReview = prev ? { ...review, previousOutcome: prev.outcome } : review
+  histories.set(findingId, [...(histories.get(findingId) ?? []), entry])
   emit()
 }
 
@@ -35,5 +49,5 @@ export function setReview(findingId: string, review: ProfessionalReview) {
  */
 export function useReviewStore() {
   useSyncExternalStore(subscribe, () => version, () => version)
-  return { getReview }
+  return { getReview, getReviewHistory }
 }

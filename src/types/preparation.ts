@@ -80,9 +80,59 @@ export interface PreparationOrder {
   container?: string
   /** Paciente cuyo estado de revisión clínica aplica (por defecto patientId). */
   reviewPatientId?: string
+  /** Preparación a la que reemplaza (cuando es un reemplazo controlado). */
+  supersedes?: string
   /** Requisitos explícitos (la revisión clínica se DERIVA aparte, no aquí). */
   requirements: PrepRequirement[]
   events: PrepEvent[]
+}
+
+/**
+ * Reemplazo CONTROLADO de una preparación verificada/liberada (no se edita in
+ * situ): la anterior queda SUPERSEDED/CANCELLED y se crea una nueva. Preserva la
+ * genealogía lote/componente de la anterior. Mapeo FHIR: relación entre dos
+ * MedicationDispense/Task (basedOn/replaces) + Provenance.
+ */
+export interface PreparationReplacement {
+  id: string
+  oldPreparationId: string
+  newPreparationId: string
+  reason: string
+  sourceChange?: string
+  actorId: string
+  actorName: string
+  actorRole: string
+  at: string
+  atIso: string
+}
+
+/** Marca de reemplazo aplicada a una preparación superada. */
+export interface SupersededMark {
+  byId: string
+  reason: string
+  at: string
+  by: string
+}
+
+/**
+ * Rechazo de Enfermería sobre una preparación liberada (barrera final de
+ * seguridad). RELEASED → REJECTED/HOLD (no "Cancelada"): genera trabajo de
+ * resolución para el equipo responsable según el motivo.
+ */
+export interface NursingRejection {
+  orderId: string
+  reasonCode: string
+  reasonLabel: string
+  comment?: string
+  nurseId: string
+  nurseName: string
+  nurseRole: string
+  patientId: string
+  medication: string
+  ownerRole: string
+  ownerLabel: string
+  at: string
+  atIso: string
 }
 
 /** Estado de preparación derivado (readiness). */
@@ -125,4 +175,12 @@ export interface PreparationView {
   nextAction: string
   /** true si el bloqueo proviene de la revisión clínica sin resolver. */
   reviewBlocked: boolean
+  /** Reemplazada por otra preparación (inmutable). */
+  superseded?: SupersededMark
+  /** Preparación anterior a la que reemplaza. */
+  supersedes?: string
+  /** Rechazo de Enfermería (HOLD hasta resolución). */
+  rejection?: NursingRejection
+  /** Requisitos listos pero pendiente de envío a producción por Enfermería. */
+  productionGate?: boolean
 }

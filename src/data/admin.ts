@@ -22,8 +22,9 @@ export const PROGRAMS: Program[] = [
 
 export const TEAMS: Team[] = [
   { id: 'TEAM-CLIN', name: 'Farmacia Clínica', facilityId: 'FAC-IPS48', memberIds: ['USR-2', 'USR-1'] },
-  { id: 'TEAM-MIX', name: 'Central de Mezclas', facilityId: 'FAC-TEU', memberIds: ['USR-3'] },
+  { id: 'TEAM-MIX', name: 'Central de Mezclas', facilityId: 'FAC-TEU', memberIds: ['USR-3', 'USR-7'] },
   { id: 'TEAM-ENF', name: 'Enfermería Oncología', facilityId: 'FAC-IPS48', memberIds: ['USR-4'] },
+  { id: 'TEAM-DISP', name: 'Dispensación', facilityId: 'FAC-TEU', memberIds: ['USR-8'] },
 ]
 
 export const ADMIN_USERS: AdminUser[] = [
@@ -33,7 +34,32 @@ export const ADMIN_USERS: AdminUser[] = [
   { id: 'USR-4', name: 'Equipo de Enfermería', email: 'enfermeria@asisfarma.co', role: 'enfermeria', teamId: 'TEAM-ENF', scope: { facilityIds: ['FAC-IPS48'], programIds: ['PRG-ONC-IPS48'] }, status: 'activo' },
   { id: 'USR-5', name: 'Juan Restrepo', email: 'jrestrepo@asisfarma.co', role: 'admin', scope: { facilityIds: ['FAC-CAS', 'FAC-IPS48', 'FAC-TEU'], programIds: [] }, status: 'activo' },
   { id: 'USR-6', name: 'Laura Peña', email: 'lpena@asisfarma.co', role: 'qf-clinico', teamId: 'TEAM-CLIN', scope: { facilityIds: ['FAC-CAS'], programIds: ['PRG-ONC-CAS'] }, status: 'inactivo' },
+  // Segundo QF de Central de Mezclas — habilita el handoff de verificación (segregación de funciones).
+  { id: 'USR-7', name: 'Laura Gómez', email: 'lgomez@asisfarma.co', role: 'qf-mezclas', teamId: 'TEAM-MIX', scope: { facilityIds: ['FAC-TEU'], programIds: ['PRG-MIX-TEU'] }, status: 'activo' },
+  // Farmacia / Dispensación — ejecuta el cumplimiento (persona 'farmacia' de TASK 18).
+  { id: 'USR-8', name: 'Carolina Ruiz', email: 'cruiz@asisfarma.co', role: 'farmacia', teamId: 'TEAM-DISP', scope: { facilityIds: ['FAC-CAS', 'FAC-IPS48', 'FAC-TEU'], programIds: ['PRG-ONC-CAS', 'PRG-ONC-IPS48', 'PRG-MIX-TEU'] }, status: 'activo' },
 ]
+
+/**
+ * Usuario demo canónico por persona (identidad "actuando como"). El switcher de
+ * demo selecciona un usuario; su rol determina el WorkspaceProfile. Laura Gómez
+ * (USR-7) no es identidad primaria: es destino de asignación para demostrar la
+ * segregación de funciones en Central de Mezclas.
+ */
+export const PERSONA_USER: Record<string, string> = {
+  coordinador: 'USR-1', 'qf-clinico': 'USR-2', farmacia: 'USR-8',
+  'qf-mezclas': 'USR-3', enfermeria: 'USR-4', admin: 'USR-5',
+}
+
+/** Alcance operativo de la Central de Mezclas (dónde ocurre la preparación estéril). */
+export const MIXING_SCOPE = { facilityId: 'FAC-TEU', programId: 'PRG-MIX-TEU' }
+
+/**
+ * Identidades demo seleccionables en "Ver como" (Practitioner). Incluye a Laura
+ * Gómez (segundo QF de Mezclas) para demostrar el handoff de verificación por
+ * segregación de funciones. El rol de cada usuario determina su WorkspaceProfile.
+ */
+export const DEMO_SWITCH_USER_IDS = ['USR-1', 'USR-2', 'USR-8', 'USR-3', 'USR-7', 'USR-4', 'USR-5']
 
 export const CLINICAL_CONFIGS: ClinicalConfiguration[] = [
   { id: 'CC-1', kind: 'protocolo', name: 'Protocolo Oncológico Institucional', version: 'v3.2', status: 'activo', owner: 'Comité de Farmacia', approvedBy: 'Dra. Andrea Herrera', effectiveDate: '01 Jul 2026' },

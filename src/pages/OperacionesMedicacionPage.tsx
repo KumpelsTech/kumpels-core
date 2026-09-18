@@ -1,14 +1,22 @@
 import { useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import type { ContinuityRisk, FulfillmentView } from '../types/fulfillment'
-import { AVAILABILITY_LABEL, COMM_LABEL, CONTINUITY_LABEL, nextFulfillmentAction, useFulfillmentStore } from '../utils/fulfillmentStore'
+import {
+  AVAILABILITY_LABEL, COMM_LABEL, CONTINUITY_LABEL, RECIPIENT_LABEL, RECEIPT_EVIDENCE_LABEL,
+  nextFulfillmentAction, useFulfillmentStore,
+} from '../utils/fulfillmentStore'
 import { continuityRank } from '../utils/continuity'
 import { usePersona } from '../utils/personaStore'
 import { services } from '../services'
 import { Badge } from '../components/Badge'
 import { Icon } from '../components/Icon'
 import { ContactModal } from '../components/ops/ContactModal'
+import { SchedulingModal } from '../components/ops/SchedulingModal'
+import { DeliveryModal } from '../components/ops/DeliveryModal'
+import { OrderChangeModal } from '../components/ops/OrderChangeModal'
+import { ImpactBanner } from '../components/ops/ImpactBanner'
 import { PreparacionEsterilWorkstream } from '../components/ops/PreparacionEsterilWorkstream'
+import { hasCapability } from '../utils/eligibility'
 
 type Workstream = 'cumplimiento' | 'preparacion'
 
@@ -35,12 +43,19 @@ function QuantityStats({ v }: { v: FulfillmentView }) {
 }
 
 function CaseDetail({ v, onClose }: { v: FulfillmentView; onClose: () => void }) {
-  const { profile } = usePersona()
-  const actor = profile.userName
-  const [editAvail, setEditAvail] = useState(false)
-  const [availVal, setAvailVal] = useState(v.expectedAvailability ?? '')
+  const { actor, can, user } = usePersona()
+  const a = actor()
   const [showContact, setShowContact] = useState(false)
+  const [showSchedule, setShowSchedule] = useState(false)
+  const [showDelivery, setShowDelivery] = useState(false)
+  const [showOrderChange, setShowOrderChange] = useState(false)
+  const [noContact, setNoContact] = useState(false)
+  const [noContactReason, setNoContactReason] = useState('')
+  const canChangeOrder = !!user && hasCapability(user, 'MEDICATION_ORDER_CHANGE')
   const lastContact = v.contacts[v.contacts.length - 1]
+  const lastDelivery = v.deliveries[v.deliveries.length - 1]
+  // Ejecución operativa solo para roles con acción (Farmacia); Coordinación supervisa.
+  const canExecute = can('registrar-contacto') || can('actualizar-disponibilidad') || can('entregar') || can('resolver-pendiente')
 
   return (
     <div className="op-detail2">
@@ -57,6 +72,7 @@ function CaseDetail({ v, onClose }: { v: FulfillmentView; onClose: () => void })
 
       <div className="od2-body">
         <div className="od2-main">
+          <ImpactBanner orderId={v.order.id} />
           <QuantityStats v={v} />
 
           {/* Continuidad — señal determinística y explicable */}
@@ -68,18 +84,14 @@ function CaseDetail({ v, onClose }: { v: FulfillmentView; onClose: () => void })
             </div>
           </div>
 
+          {/* Coherencia de contacto (§8): no se resuelve a ciegas si falta contacto */}
+          {v.isPending && !v.contactSettled ? (
+            <div className="coherence-warn"><Icon name="alert" size={13} /> Contacto con el paciente pendiente — el pendiente no puede marcarse completo sin registrar entrega o resolver explícitamente sin contacto.</div>
+          ) : null}
+
           <div className="od2-facts">
             <div className="fact"><span className="fk">Disponibilidad</span>
-              <span className="fv">
-                {editAvail ? (
-                  <span style={{ display: 'inline-flex', gap: 6 }}>
-                    <input className="avail-input" value={availVal} onChange={(e) => setAvailVal(e.target.value)} placeholder="p. ej. Sep 14" />
-                    <button type="button" className="btn sm primary" onClick={() => { void services.fulfillment.updateAvailability(v.order.id, availVal, actor); setEditAvail(false) }}>OK</button>
-                  </span>
-                ) : (
-                  <>{AVAILABILITY_LABEL[v.availability]}{v.expectedAvailability ? ` · ${v.expectedAvailability}` : ''} <button type="button" className="link-mini" onClick={() => setEditAvail(true)}>editar</button></>
-                )}
-              </span>
+              <span className="fv">{AVAILABILITY_LABEL[v.availability]}{v.expectedAvailability ? ` · ${v.expectedAvailability}` : ''}</span>
               {v.availabilityUpdatedAt ? <span className="fsub">Actualizado {v.availabilityUpdatedAt}</span> : null}
             </div>
             <div className="fact"><span className="fk">Pendiente desde</span><span className="fv">{v.pendingSince} · {v.daysPending} d</span></div>
@@ -91,12 +103,46 @@ function CaseDetail({ v, onClose }: { v: FulfillmentView; onClose: () => void })
             {v.lot ? <div className="fact"><span className="fk">Lote</span><span className="fv mono">{v.lot}</span></div> : null}
           </div>
 
-          <div className="od2-actions">
-            <button type="button" className="btn sm" disabled={!v.isPending} onClick={() => setShowContact(true)}><Icon name="phone" size={13} /> Registrar contacto</button>
-            <button type="button" className="btn sm" disabled={!v.isPending} onClick={() => setEditAvail(true)}><Icon name="calendar" size={13} /> Actualizar disponibilidad</button>
-            <button type="button" className="btn sm primary" disabled={!v.isPending} onClick={() => { void services.fulfillment.resolvePending(v.order.id, actor) }}><Icon name="check" size={13} /> Resolver pendiente</button>
-          </div>
-          {!v.isPending ? <div className="calm" style={{ marginTop: 12 }}><span className="c-ico"><Icon name="check" size={15} /></span> Cumplimiento completo · saldo entregado al paciente.</div> : null}
+          {lastDelivery ? (
+            <div className="delivery-note">
+              <Icon name="box" size={13} /> Entregado a <b>{RECIPIENT_LABEL[lastDelivery.recipientType]}{lastDelivery.recipientName ? ` · ${lastDelivery.recipientName}` : ''}</b> · {lastDelivery.at}
+              <span className="dn-ev"> · Evidencia: {RECEIPT_EVIDENCE_LABEL[lastDelivery.evidence.type]}</span>
+              <span className="dn-by"> · por {lastDelivery.deliveredBy}</span>
+            </div>
+          ) : null}
+          {v.resolvedWithoutContactReason ? (
+            <div className="coherence-warn"><Icon name="shield" size={13} /> Resuelto sin contacto exitoso — {v.resolvedWithoutContactReason}</div>
+          ) : null}
+
+          {canExecute ? (
+            <div className="od2-actions">
+              <button type="button" className="btn sm" disabled={!v.isPending || !can('registrar-contacto')} onClick={() => setShowContact(true)}><Icon name="phone" size={13} /> Registrar contacto</button>
+              <button type="button" className="btn sm" disabled={!v.isPending || !can('actualizar-disponibilidad')} onClick={() => setShowSchedule(true)}><Icon name="calendar" size={13} /> Reprogramar</button>
+              <button type="button" className="btn sm primary" disabled={!v.isPending || !can('entregar')} onClick={() => setShowDelivery(true)}><Icon name="box" size={13} /> Registrar entrega</button>
+              {can('resolver-pendiente') ? <button type="button" className="btn sm" disabled={!v.isPending} onClick={() => setNoContact((s) => !s)}><Icon name="check" size={13} /> Resolver sin contacto</button> : null}
+            </div>
+          ) : (
+            <div className="subtle" style={{ marginTop: 12 }}><Icon name="users" size={12} /> Vista de supervisión — la ejecución operativa la realiza Farmacia / Dispensación.</div>
+          )}
+
+          {noContact && v.isPending ? (
+            <div className="nocontact-box">
+              <label>Motivo para resolver sin contacto <span className="fu-hint">· obligatorio</span></label>
+              <div style={{ display: 'flex', gap: 8, marginTop: 6 }}>
+                <input type="text" value={noContactReason} onChange={(e) => setNoContactReason(e.target.value)} placeholder="p. ej. Entrega institucional documentada aparte" style={{ flex: 1 }} />
+                <button type="button" className="btn sm primary" disabled={!noContactReason.trim()} onClick={() => { void services.fulfillment.resolveWithoutContact(v.order.id, noContactReason.trim(), a); setNoContact(false); setNoContactReason('') }}>Confirmar</button>
+              </div>
+            </div>
+          ) : null}
+
+          {canChangeOrder ? (
+            <div className="od2-orderchange">
+              <button type="button" className="btn sm" onClick={() => setShowOrderChange(true)}><Icon name="refresh" size={13} /> Registrar cambio de orden</button>
+              <span className="subtle" style={{ marginLeft: 8 }}>Evalúa el impacto aguas abajo (preparación/entrega/administración).</span>
+            </div>
+          ) : null}
+
+          {!v.isPending ? <div className="calm" style={{ marginTop: 12 }}><span className="c-ico"><Icon name="check" size={15} /></span> Cumplimiento completo{lastDelivery ? ' · entrega registrada' : ''}.</div> : null}
         </div>
 
         <div className="od2-timeline">
@@ -113,9 +159,24 @@ function CaseDetail({ v, onClose }: { v: FulfillmentView; onClose: () => void })
       </div>
 
       {showContact ? (
-        <ContactModal patientName={v.order.patientName}
-          onSave={(entry, st) => { void services.fulfillment.registerContact(v.order.id, entry, st, actor); setShowContact(false) }}
+        <ContactModal patientName={v.order.patientName} previous={v.contacts}
+          onSave={(entry) => { void services.fulfillment.registerContact(v.order.id, entry, a); setShowContact(false) }}
           onClose={() => setShowContact(false)} />
+      ) : null}
+      {showSchedule ? (
+        <SchedulingModal patientName={v.order.patientName} currentLabel={v.expectedAvailability} history={v.scheduleHistory}
+          onSave={(change) => { void services.fulfillment.reprogram(v.order.id, change, a); setShowSchedule(false) }}
+          onClose={() => setShowSchedule(false)} />
+      ) : null}
+      {showDelivery ? (
+        <DeliveryModal patientName={v.order.patientName} medicationLabel={v.order.medication} remaining={v.remaining} unitLabel={v.order.unitLabel}
+          onSave={(delivery) => { void services.fulfillment.registerDelivery(v.order.id, delivery, a); setShowDelivery(false) }}
+          onClose={() => setShowDelivery(false)} />
+      ) : null}
+      {showOrderChange ? (
+        <OrderChangeModal orderId={v.order.id} medication={v.order.medication}
+          onSave={(input) => { void services.orderChange.registerChange(v.order.id, input, a); setShowOrderChange(false) }}
+          onClose={() => setShowOrderChange(false)} />
       ) : null}
     </div>
   )

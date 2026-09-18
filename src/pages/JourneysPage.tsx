@@ -1,50 +1,57 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { JourneyCard } from '../components/journey/JourneyCard'
 import { PATIENTS } from '../data/patients'
-import { deriveJourney, hasActiveException } from '../utils/journey'
+import { deriveEpisodeJourney } from '../utils/episodeJourney'
 import { PRIORITY_ORDER } from '../utils/patient'
+import { useReviewStore } from '../utils/reviewStore'
+import { usePreparationStore } from '../utils/preparationStore'
+import { useProductionStore } from '../utils/productionStore'
+import { useCoordinatorStore } from '../utils/coordinatorStore'
+import { useFulfillmentStore } from '../utils/fulfillmentStore'
+import { useCareStore } from '../utils/careStore'
+import { useAdministrationStore } from '../utils/administrationStore'
 
 type Segment = 'todos' | 'atencion'
 
 /**
- * Journeys — episodios de tratamiento activos y su avance.
- * Responde "¿cómo avanza este episodio y qué ocurre ahora?".
- * Deriva cada journey del paciente compartido (no es otro directorio).
+ * Journeys — progresión OPERATIVA de cada episodio (no un directorio de pacientes).
+ * Cada journey se DERIVA del estado real de los dominios (revisión, producción,
+ * preparación, administración, cumplimiento, seguimiento) — no duplica el flujo.
  */
 export function JourneysPage() {
+  // Suscripción a los dominios de los que se deriva el journey (re-render reactivo).
+  useReviewStore(); usePreparationStore(); useProductionStore(); useCoordinatorStore()
+  useFulfillmentStore(); useCareStore(); useAdministrationStore()
   const [segment, setSegment] = useState<Segment>('todos')
 
-  const journeys = useMemo(() => {
-    const source = [...PATIENTS].sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority])
-    const filtered = segment === 'atencion' ? source.filter(hasActiveException) : source
-    return filtered.map(deriveJourney)
-  }, [segment])
-
-  const attentionCount = PATIENTS.filter(hasActiveException).length
+  const source = [...PATIENTS].sort((a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority])
+  const journeys = source.map(deriveEpisodeJourney)
+  const shown = segment === 'atencion' ? journeys.filter((j) => j.blocked) : journeys
+  const attentionCount = journeys.filter((j) => j.blocked).length
 
   return (
     <>
       <div className="page-head">
         <div>
           <h1 className="page-title">Journeys de tratamiento</h1>
-          <div className="page-sub">Seguimiento longitudinal de los episodios oncológicos activos y su progresión.</div>
+          <div className="page-sub">Progresión operativa de cada episodio: dónde está, qué sigue y quién es responsable.</div>
         </div>
         <div className="page-meta">
-          <strong>{PATIENTS.length} episodios activos</strong>
-          {attentionCount} con excepción
+          <strong>{journeys.length} episodios activos</strong>
+          {attentionCount} bloqueado{attentionCount === 1 ? '' : 's'}
         </div>
       </div>
 
       <div className="toolbar">
-        <div className="subtle">Cada tarjeta muestra el avance del episodio y los procesos activos.</div>
+        <div className="subtle">Cada tarjeta proyecta el estado real del episodio y su próximo responsable.</div>
         <div className="seg" role="tablist" aria-label="Filtro de journeys">
           <button type="button" className={segment === 'todos' ? 'on' : ''} onClick={() => setSegment('todos')}>Todos</button>
-          <button type="button" className={segment === 'atencion' ? 'on' : ''} onClick={() => setSegment('atencion')}>Requieren atención</button>
+          <button type="button" className={segment === 'atencion' ? 'on' : ''} onClick={() => setSegment('atencion')}>Bloqueados</button>
         </div>
       </div>
 
       <div className="jcards">
-        {journeys.map((jv) => (
+        {shown.map((jv) => (
           <JourneyCard key={jv.patientId} journey={jv} />
         ))}
       </div>

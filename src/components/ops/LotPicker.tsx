@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { LOT_STATUS_LABEL, LOT_STATUS_VARIANT, useTraceabilityStore } from '../../utils/traceabilityStore'
 import { Badge } from '../Badge'
 import { Icon } from '../Icon'
@@ -14,12 +14,15 @@ export function LotPicker({
   presentationId: string
   presentationLabel: string
   currentLotId?: string
-  onPick: (lotId: string) => void
+  onPick: (lotId: string, reason?: string) => void
   onClose: () => void
 }) {
   const { getSelectableLots, suggestLot } = useTraceabilityStore()
   const { disponibles, otros } = getSelectableLots(presentationId)
   const suggested = suggestLot(presentationId)
+  const [reason, setReason] = useState('')
+  const changing = !!currentLotId
+  const pick = (lotId: string) => { if (lotId !== currentLotId) onPick(lotId, changing ? (reason.trim() || undefined) : undefined) }
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -39,10 +42,16 @@ export function LotPicker({
           <button type="button" className="mh-close" aria-label="Cerrar" onClick={onClose}><span style={{ fontSize: 16, lineHeight: 1 }}>×</span></button>
         </div>
         <div className="modal-body">
+          {changing ? (
+            <div className="fu-field" style={{ marginBottom: 14 }}>
+              <label>Motivo del cambio de lote <span className="fu-hint">· recomendado</span></label>
+              <input type="text" value={reason} onChange={(e) => setReason(e.target.value)} placeholder="p. ej. Lote anterior en cuarentena" />
+            </div>
+          ) : null}
           <div className="lp-group">Disponibles</div>
           {disponibles.length === 0 ? <div className="subtle" style={{ padding: '4px 0 10px' }}>No hay lotes disponibles para esta presentación.</div> : null}
           {disponibles.map((l) => (
-            <button type="button" key={l.id} className={`lp-lot ${currentLotId === l.id ? 'on' : ''}`} onClick={() => onPick(l.id)}>
+            <button type="button" key={l.id} className={`lp-lot ${currentLotId === l.id ? 'on' : ''}`} onClick={() => pick(l.id)}>
               <span className="lp-check">{currentLotId === l.id ? <Icon name="check" size={13} /> : null}</span>
               <div className="lp-main">
                 <div className="lp-top">

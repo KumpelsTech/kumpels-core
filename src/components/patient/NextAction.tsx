@@ -29,7 +29,10 @@ export function NextAction({ patient }: { patient: Patient }) {
         <div className="ha-reason">{na.reason}</div>
       </div>
       <div className="ha-cta">
-        <button type="button" className="btn hero">{na.verb}</button>
+        <button type="button" className="btn hero"
+          onClick={() => document.getElementById('journey')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}>
+          {na.verb}
+        </button>
         <div className="ha-status"><Icon name="shield" size={13} /> {na.statusNote}</div>
       </div>
     </div>

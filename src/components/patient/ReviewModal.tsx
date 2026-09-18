@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import type { Finding, ProfessionalReview, ReviewOutcome } from '../../types/review'
+import type { ActorRef } from '../../types/actor'
+import { now } from '../../utils/datetime'
 import { Icon } from '../Icon'
+import { HistoryDrawer, type HistoryEntry } from '../HistoryDrawer'
 
 const OPTIONS: { value: ReviewOutcome; desc: string }[] = [
   { value: 'Confirmado', desc: 'El hallazgo es relevante y se confirma para gestión clínica.' },
@@ -8,21 +11,26 @@ const OPTIONS: { value: ReviewOutcome; desc: string }[] = [
   { value: 'Pendiente', desc: 'Requiere más información antes de decidir.' },
 ]
 
+const TONE: Record<ReviewOutcome, HistoryEntry['tone']> = { Confirmado: 'warn', Descartado: 'ok', Pendiente: 'info' }
+
 /**
  * Registro de decisión profesional sobre un hallazgo. NO es la intervención
  * completa: solo captura el juicio profesional (confirmar/descartar/pendiente).
+ * Conserva historia: al editar, muestra la decisión previa y "Ver historial".
  */
 export function ReviewModal({
-  finding, existing, reviewer, onSave, onClose,
+  finding, existing, history = [], reviewer, onSave, onClose,
 }: {
   finding: Finding
   existing?: ProfessionalReview
-  reviewer: string
+  history?: ProfessionalReview[]
+  reviewer: ActorRef
   onSave: (review: ProfessionalReview) => void
   onClose: () => void
 }) {
   const [outcome, setOutcome] = useState<ReviewOutcome | null>(existing?.outcome ?? null)
-  const [comment, setComment] = useState(existing?.comment ?? '')
+  const [comment, setComment] = useState('')
+  const [showHistory, setShowHistory] = useState(false)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
@@ -32,8 +40,15 @@ export function ReviewModal({
 
   const save = () => {
     if (!outcome) return
-    onSave({ outcome, comment: comment.trim() || undefined, by: reviewer, at: 'Hoy' })
+    const stamp = now()
+    onSave({ outcome, comment: comment.trim() || undefined, by: reviewer.name, role: reviewer.role, at: stamp.label, atIso: stamp.iso })
   }
+
+  const histEntries: HistoryEntry[] = history.map((r, i) => ({
+    id: `rev-${i}`, when: r.at, title: r.outcome, detail: r.comment, actor: r.by, role: r.role,
+    transition: r.previousOutcome ? { from: r.previousOutcome, to: r.outcome } : undefined,
+    tone: TONE[r.outcome],
+  })).reverse()
 
   return (
     <div className="modal-scrim" onClick={onClose}>
@@ -44,6 +59,11 @@ export function ReviewModal({
             <div className="mh-title">Revisión profesional</div>
             <div className="mh-sub">{finding.domain} · decisión del profesional</div>
           </div>
+          {history.length ? (
+            <button type="button" className="link-mini" style={{ marginLeft: 'auto', marginRight: 8 }} onClick={() => setShowHistory(true)}>
+              <Icon name="clock" size={12} /> Ver historial ({history.length})
+            </button>
+          ) : null}
           <button type="button" className="mh-close" aria-label="Cerrar" onClick={onClose}>
             <span style={{ fontSize: 16, lineHeight: 1 }}>×</span>
           </button>
@@ -54,6 +74,13 @@ export function ReviewModal({
             <b>Dato del paciente.</b> {finding.patientData}<br />
             <b>Criterio configurado.</b> {finding.criterion}
           </div>
+          {existing ? (
+            <div className="prev-decision">
+              <Icon name="clock" size={12} /> Decisión vigente · <b>{existing.outcome}</b> · {existing.by}{existing.role ? ` (${existing.role})` : ''} · <span className="mono">{existing.at}</span>
+              {existing.comment ? <div className="pd-note">{existing.comment}</div> : null}
+              <div className="pd-hint">Registrar una decisión distinta conserva la anterior en el historial.</div>
+            </div>
+          ) : null}
           <div className="mb-lead"><Icon name="shield" size={13} /> Registrar decisión profesional</div>
           <div className="opt-row">
             {OPTIONS.map((o) => (
@@ -79,10 +106,14 @@ export function ReviewModal({
           <button type="button" className="btn sm" onClick={onClose}>Cancelar</button>
           <button type="button" className="btn primary sm" disabled={!outcome} onClick={save}
             style={!outcome ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}>
-            Guardar decisión
+            {existing ? 'Actualizar decisión' : 'Guardar decisión'}
           </button>
         </div>
       </div>
+      {showHistory ? (
+        <HistoryDrawer title="Historial de decisiones" subtitle={`${finding.domain} · ${finding.id}`}
+          icon="stethoscope" entries={histEntries} onClose={() => setShowHistory(false)} />
+      ) : null}
     </div>
   )
 }

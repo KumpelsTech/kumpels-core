@@ -4,6 +4,10 @@ import { makePharmaceuticalCareService } from './pharmaceuticalCareService'
 import { makeFulfillmentService } from './fulfillmentService'
 import { makePreparationService } from './preparationService'
 import { makeTraceabilityService } from './traceabilityService'
+import { makeAdministrationService } from './administrationService'
+import { makeCoordinatorService } from './coordinatorService'
+import { makeOrderChangeService } from './orderChangeService'
+import { makeProductionService } from './productionService'
 import { makeAdminService } from './adminService'
 
 /**
@@ -17,6 +21,10 @@ export const services = {
   fulfillment: makeFulfillmentService(repos.fulfillment),
   preparation: makePreparationService(repos.preparation),
   traceability: makeTraceabilityService(repos.traceability),
+  administration: makeAdministrationService(repos.administration),
+  coordinator: makeCoordinatorService(repos.coordinator),
+  orderChange: makeOrderChangeService(),
+  production: makeProductionService(repos.production),
   admin: makeAdminService(repos.admin),
 }
 

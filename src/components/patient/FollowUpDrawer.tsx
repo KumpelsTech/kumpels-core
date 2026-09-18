@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
 import type { Patient } from '../../types/patient'
 import type { FollowUpAssessment, PharmaceuticalCareEnrollment } from '../../types/careFollowup'
+import type { ActorRef } from '../../types/actor'
 import { getTherapy } from '../../data/therapy'
+import { now } from '../../utils/datetime'
 import { Icon } from '../Icon'
+import { Segmented } from '../Segmented'
 
 function Field({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
@@ -15,16 +18,18 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 
 /**
  * Drawer de seguimiento farmacoterapéutico. Kumpels precarga el contexto conocido
- * y el profesional confirma/completa solo lo relevante. Sirve también como
- * "Entrevista inicial" (mismo modelo, estado inicial). No es una intervención.
+ * y el profesional confirma/completa solo lo relevante con controles compactos
+ * (segmentados) y divulgación progresiva. Sirve también como "Entrevista inicial".
+ * No es una intervención; lo reportado por el paciente queda identificado como tal.
  */
 export function FollowUpDrawer({
-  patient, enrollment, existing, reviewer, onSave, onClose,
+  patient, enrollment, existing, previous, reviewer, onSave, onClose,
 }: {
   patient: Patient
   enrollment: PharmaceuticalCareEnrollment
   existing?: FollowUpAssessment
-  reviewer: string
+  previous?: FollowUpAssessment
+  reviewer: ActorRef
   onSave: (a: FollowUpAssessment) => void
   onClose: () => void
 }) {
@@ -39,7 +44,8 @@ export function FollowUpDrawer({
         : patient.category === 'REABASTECIMIENTO' ? 'Reabastecimiento pendiente' : 'Ninguna'
 
   const [continuidad, setContinuidad] = useState(existing?.continuidad ?? (initial ? 'Inicia tratamiento' : 'Activo'))
-  const [uso, setUso] = useState(existing?.usoReportado ?? (adherWarn ? 'Uso no confirmado' : 'Sin omisiones reportadas'))
+  const [uso, setUso] = useState(existing?.usoReportado ?? (adherWarn ? 'No confirmado' : 'Adecuado'))
+  const [hasSymptom, setHasSymptom] = useState<'no' | 'si'>(existing?.seguridad ? 'si' : 'no')
   const [seguridad, setSeguridad] = useState(existing?.seguridad ?? '')
   const [cambios, setCambios] = useState(existing?.cambios ?? (/cambio/i.test(patient.status) ? 'Cambio de esquema (06 Sep)' : 'Sin cambios'))
   const [acceso, setAcceso] = useState(existing?.acceso ?? accesoDefault)
@@ -52,11 +58,14 @@ export function FollowUpDrawer({
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose])
 
-  const needsReview = seguridad.trim().length > 0
+  const needsReview = hasSymptom === 'si' && seguridad.trim().length > 0
   const save = () => {
+    const stamp = now()
     onSave({
-      patientId: patient.id, mode: enrollment.mode, at: 'Hoy', by: reviewer,
-      continuidad, usoReportado: selfAdmin ? uso : undefined, seguridad: seguridad.trim() || undefined,
+      patientId: patient.id, mode: enrollment.mode, at: stamp.label, atIso: stamp.iso,
+      by: reviewer.name, role: reviewer.role,
+      continuidad, usoReportado: selfAdmin ? uso : undefined,
+      seguridad: hasSymptom === 'si' ? (seguridad.trim() || undefined) : undefined,
       cambios, acceso, observation: observation.trim() || undefined, nextFollowUp: next, needsProfessionalReview: needsReview,
     })
   }
@@ -81,7 +90,7 @@ export function FollowUpDrawer({
             <div className="fp-head"><Icon name="spark" size={13} /> Kumpels preparó este {initial ? 'onboarding' : 'seguimiento'}</div>
             <div className="fp-chips">
               <div className="fp-chip">Tratamiento: <b>{prefillMeds}</b></div>
-              <div className="fp-chip">Último contacto: <b>{enrollment.lastAssessment ?? 'sin contacto previo'}</b></div>
+              <div className="fp-chip">Último seguimiento: <b>{previous?.at ?? enrollment.lastAssessment ?? 'sin registro previo'}</b></div>
               <div className="fp-chip">Contexto clínico: <b>{patient.clinical.labs ?? '—'}</b></div>
               <div className="fp-chip">Acceso: <b>{prefillAccess}</b></div>
             </div>
@@ -90,22 +99,27 @@ export function FollowUpDrawer({
           <div className="mb-lead"><Icon name="stethoscope" size={13} /> Confirma solo lo relevante</div>
 
           <Field label="Continuidad del tratamiento">
-            <select className="fsel-el" value={continuidad} onChange={(e) => setContinuidad(e.target.value)}>
-              {(initial ? ['Inicia tratamiento'] : ['Activo', 'En pausa', 'Interrumpido']).map((o) => <option key={o}>{o}</option>)}
-            </select>
+            <Segmented value={continuidad}
+              options={(initial ? ['Inicia tratamiento'] : ['Activo', 'Interrumpido', 'No confirmado']).map((o) => ({ value: o, label: o }))}
+              onChange={setContinuidad} ariaLabel="Continuidad" size="sm" />
           </Field>
 
           {selfAdmin ? (
-            <Field label="Uso / dosis omitidas" hint="reportado por el paciente">
-              <select className="fsel-el" value={uso} onChange={(e) => setUso(e.target.value)}>
-                {['Sin omisiones reportadas', 'Algunas omisiones', 'Uso no confirmado'].map((o) => <option key={o}>{o}</option>)}
-              </select>
+            <Field label="Uso / adherencia" hint="reportado por el paciente">
+              <Segmented value={uso}
+                options={['Adecuado', 'Omisiones', 'No confirmado'].map((o) => ({ value: o, label: o }))}
+                onChange={setUso} ariaLabel="Uso" size="sm" />
             </Field>
           ) : null}
 
           <Field label="Síntomas o problemas de seguridad" hint="reportado por el paciente">
-            <textarea value={seguridad} onChange={(e) => setSeguridad(e.target.value)} placeholder="Ninguno reportado — o describe el síntoma/problema…" />
+            <Segmented value={hasSymptom} options={[{ value: 'no', label: 'No' }, { value: 'si', label: 'Sí' }]} onChange={setHasSymptom} ariaLabel="Síntomas" size="sm" />
           </Field>
+          {hasSymptom === 'si' ? (
+            <Field label="Describe el síntoma / problema">
+              <textarea value={seguridad} onChange={(e) => setSeguridad(e.target.value)} placeholder="Describe lo reportado por el paciente…" />
+            </Field>
+          ) : null}
 
           <Field label="Cambios de medicamentos">
             <input type="text" value={cambios} onChange={(e) => setCambios(e.target.value)} />

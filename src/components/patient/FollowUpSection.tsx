@@ -2,7 +2,6 @@ import { useState } from 'react'
 import type { Patient } from '../../types/patient'
 import type { CareDomain, FollowUpStatusKind } from '../../types/careFollowup'
 import { getCare } from '../../data/careFollowup'
-import { ORG } from '../../data/org'
 import { useCareStore } from '../../utils/careStore'
 import { usePersona } from '../../utils/personaStore'
 import { useFulfillmentStore } from '../../utils/fulfillmentStore'
@@ -12,6 +11,7 @@ import { Badge } from '../Badge'
 import { EmptyState } from '../EmptyState'
 import { Icon } from '../Icon'
 import { FollowUpDrawer } from './FollowUpDrawer'
+import { HistoryDrawer, type HistoryEntry } from '../HistoryDrawer'
 
 const STATUS_BADGE: Record<FollowUpStatusKind, 'ok' | 'action' | 'info'> = {
   'al-dia': 'ok', completado: 'ok', requerido: 'action', vencido: 'action', 'entrevista-pendiente': 'info',
@@ -34,10 +34,11 @@ function DomainRow({ dom }: { dom: CareDomain }) {
  */
 export function FollowUpSection({ patient }: { patient: Patient }) {
   const base = getCare(patient.id)
-  const { getAssessment } = useCareStore()
+  const { getAssessment, getAssessmentHistory } = useCareStore()
   useFulfillmentStore() // suscripción: el contexto de continuidad afecta el dominio "acceso"
-  const { can } = usePersona()
+  const { can, actor } = usePersona()
   const [open, setOpen] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
 
   if (!base) return <div className="card"><EmptyState icon="refresh" title="Sin registro de atención farmacéutica" /></div>
 
@@ -45,6 +46,13 @@ export function FollowUpSection({ patient }: { patient: Patient }) {
   const domains = deriveCareDomains(patient.id, base.domains)
 
   const done = getAssessment(patient.id)
+  const history = getAssessmentHistory(patient.id)
+  const previous = history.length > 1 ? history[history.length - 2] : undefined
+  const histEntries: HistoryEntry[] = history.map((h, i) => ({
+    id: `fu-${i}`, when: h.at, title: h.mode === 'entrevista-inicial' ? 'Entrevista inicial' : 'Seguimiento',
+    detail: `Continuidad: ${h.continuidad}${h.usoReportado ? ` · Uso: ${h.usoReportado}` : ''}${h.seguridad ? ` · Síntoma: ${h.seguridad}` : ''}`,
+    actor: h.by, role: h.role, tone: (h.needsProfessionalReview ? 'warn' : 'ok') as HistoryEntry['tone'],
+  })).reverse()
   const status: FollowUpStatusKind = done ? 'completado' : base.status
   const statusLabel = done ? `Completado · Hoy` : base.statusLabel
   const lastAssessment = done ? 'Hoy' : base.lastAssessment
@@ -71,11 +79,16 @@ export function FollowUpSection({ patient }: { patient: Patient }) {
             {base.setting ? <span className="cm">Ámbito · <b>{base.setting}</b></span> : null}
           </div>
         </div>
-        {can('seguimiento') ? (
-          <button type="button" className={`btn sm ${base.required && !done ? 'primary' : ''}`} onClick={() => setOpen(true)}>
-            {actionLabel}
-          </button>
-        ) : null}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {history.length ? (
+            <button type="button" className="link-mini" onClick={() => setShowHistory(true)}><Icon name="clock" size={12} /> Ver historial ({history.length})</button>
+          ) : null}
+          {can('seguimiento') ? (
+            <button type="button" className={`btn sm ${base.required && !done ? 'primary' : ''}`} onClick={() => setOpen(true)}>
+              {actionLabel}
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <div className="dom-list">
@@ -85,8 +98,9 @@ export function FollowUpSection({ patient }: { patient: Patient }) {
       {done ? (
         <div className="care-result">
           <div style={{ fontWeight: 700, fontSize: 12.5, marginBottom: 6, display: 'flex', alignItems: 'center', gap: 7 }}>
-            <Icon name="check" size={13} /> Último seguimiento registrado · {done.by}
+            <Icon name="check" size={13} /> Seguimiento actual · {done.by}{done.role ? ` (${done.role})` : ''} · <span className="mono" style={{ fontWeight: 500 }}>{done.at}</span>
           </div>
+          {previous ? <div className="prev-fu">Anterior · {previous.at} · {previous.continuidad}</div> : null}
           <div style={{ fontSize: 12.5, lineHeight: 1.55, color: 'var(--ink-2)' }}>
             Continuidad: {done.continuidad}. {done.usoReportado ? `Uso (reportado): ${done.usoReportado}. ` : ''}
             {done.seguridad ? `Síntoma reportado: ${done.seguridad}. ` : 'Sin síntomas reportados. '}
@@ -107,10 +121,14 @@ export function FollowUpSection({ patient }: { patient: Patient }) {
           patient={patient}
           enrollment={base}
           existing={done}
-          reviewer={ORG.user.name}
+          previous={previous}
+          reviewer={actor()}
           onSave={(a) => { void services.pharmaceuticalCare.completeAssessment(patient.id, a); setOpen(false) }}
           onClose={() => setOpen(false)}
         />
+      ) : null}
+      {showHistory ? (
+        <HistoryDrawer title="Historial de seguimientos" subtitle={`${patient.name} · ${patient.id}`} icon="refresh" entries={histEntries} onClose={() => setShowHistory(false)} />
       ) : null}
     </div>
   )

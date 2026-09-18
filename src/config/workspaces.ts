@@ -10,13 +10,19 @@ import type { IconName } from '../components/Icon'
  * queda lista para conectar autorización real más adelante.
  */
 
-export type DemoPersona = 'coordinador' | 'qf-clinico' | 'qf-mezclas' | 'enfermeria' | 'admin'
+export type DemoPersona = 'coordinador' | 'qf-clinico' | 'farmacia' | 'qf-mezclas' | 'enfermeria' | 'admin'
 
 /** Acciones gobernadas por rol (claves, no lógica). */
 export type ActionKey =
   | 'ver-caso' | 'revisar' | 'seguimiento'
   | 'preparar' | 'verificar' | 'liberar' | 'seleccionar-lote'
-  | 'registrar-administracion' | 'reasignar'
+  | 'registrar-administracion'
+  // Handoff Enfermería → Central de Mezclas (envío / aceptación de producción)
+  | 'enviar-produccion' | 'aceptar-solicitud'
+  // Ejecución operativa de dispensación (Farmacia / Dispensación)
+  | 'registrar-contacto' | 'actualizar-disponibilidad' | 'entregar' | 'resolver-pendiente'
+  // Supervisión / coordinación (Coordinador): NO ejecuta trabajo clínico
+  | 'asignar' | 'reasignar' | 'escalar' | 'priorizar'
 
 /** Secciones de Patient 360 (workspace compartido, visibilidad adaptada). */
 export type SectionKey = 'ahora' | 'atencion' | 'tratamiento' | 'operacion' | 'seguimiento' | 'actividad'
@@ -24,7 +30,7 @@ export type SectionKey = 'ahora' | 'atencion' | 'tratamiento' | 'operacion' | 's
 /** Clave de navegación (destino real; se reutilizan rutas y datos del Core). */
 export type NavKey =
   | 'hoy' | 'pacientes' | 'journeys' | 'revision' | 'seguimiento-nav'
-  | 'operaciones' | 'preparacion' | 'trazabilidad' | 'administracion' | 'analitica' | 'configuracion'
+  | 'operaciones' | 'preparacion' | 'trazabilidad' | 'administracion' | 'planeacion-enf' | 'comunicaciones' | 'analitica' | 'configuracion'
 
 interface NavItemDef { label: string; icon: IconName; to?: string }
 /** Referencia de nav: clave, o clave con override de etiqueta/ícono para el rol. */
@@ -41,6 +47,8 @@ export const NAV_CATALOG: Record<NavKey, NavItemDef> = {
   preparacion: { label: 'Preparación estéril', icon: 'drop', to: '/medication-operations?ws=preparacion' },
   trazabilidad: { label: 'Trazabilidad', icon: 'route', to: '/medication-operations?ws=preparacion&trace=1' },
   administracion: { label: 'Tratamientos / Administración', icon: 'syringe', to: '/today?focus=administracion' },
+  'planeacion-enf': { label: 'Planeación', icon: 'calendar', to: '/nursing-planning' },
+  comunicaciones: { label: 'Comunicaciones', icon: 'msg', to: '/communications' },
   analitica: { label: 'Analítica', icon: 'chart' }, // placeholder (sin ruta aún)
   configuracion: { label: 'Configuración', icon: 'gear', to: '/config' },
 }
@@ -61,16 +69,25 @@ export const WORKSPACES: Record<DemoPersona, WorkspaceProfile> = {
   coordinador: {
     persona: 'coordinador', label: 'Coordinador farmacéutico', short: 'Coordinador',
     userName: 'Sandra Garzón', roleLabel: 'Coordinación Farmacéutica', initials: 'SG',
-    nav: ['hoy', 'pacientes', 'journeys', 'revision', 'operaciones', 'analitica', 'configuracion'],
+    nav: ['hoy', 'pacientes', 'journeys', 'revision', 'operaciones', 'comunicaciones', 'analitica', 'configuracion'],
     sections: ['ahora', 'atencion', 'tratamiento', 'operacion', 'seguimiento', 'actividad'],
-    actions: ['ver-caso'],
+    // Supervisión / priorización / escalamiento — no ejecuta trabajo clínico ni operativo.
+    actions: ['ver-caso', 'asignar', 'reasignar', 'escalar', 'priorizar'],
   },
   'qf-clinico': {
     persona: 'qf-clinico', label: 'QF clínico', short: 'QF clínico',
     userName: 'Ximena Torres', roleLabel: 'Farmacia Clínica', initials: 'XT',
-    nav: ['hoy', 'pacientes', 'revision', 'seguimiento-nav', 'journeys'],
+    nav: ['hoy', 'pacientes', 'revision', 'seguimiento-nav', 'comunicaciones', 'journeys'],
     sections: ['ahora', 'atencion', 'tratamiento', 'seguimiento', 'actividad'],
     actions: ['ver-caso', 'revisar', 'seguimiento'],
+  },
+  farmacia: {
+    persona: 'farmacia', label: 'Farmacia / Dispensación', short: 'Farmacia',
+    userName: 'Carolina Ruiz', roleLabel: 'Farmacia / Dispensación', initials: 'CR',
+    nav: ['hoy', { key: 'operaciones', label: 'Dispensación', icon: 'box' }, 'pacientes'],
+    sections: ['ahora', 'operacion', 'tratamiento', 'actividad'],
+    // Ejecución operativa del cumplimiento: contacto, disponibilidad, entrega, resolución.
+    actions: ['ver-caso', 'registrar-contacto', 'actualizar-disponibilidad', 'entregar', 'resolver-pendiente'],
   },
   'qf-mezclas': {
     persona: 'qf-mezclas', label: 'QF Central de Mezclas', short: 'Central de Mezclas',
@@ -82,7 +99,7 @@ export const WORKSPACES: Record<DemoPersona, WorkspaceProfile> = {
   enfermeria: {
     persona: 'enfermeria', label: 'Enfermería', short: 'Enfermería',
     userName: 'Equipo de Enfermería', roleLabel: 'Enfermería', initials: 'EN',
-    nav: ['hoy', 'pacientes', 'administracion', { key: 'operaciones', label: 'Estado de medicación', icon: 'pill' }],
+    nav: ['hoy', 'planeacion-enf', 'pacientes', 'administracion', { key: 'operaciones', label: 'Estado de medicación', icon: 'pill' }],
     sections: ['ahora', 'tratamiento', 'operacion', 'actividad'],
     actions: ['ver-caso', 'registrar-administracion'],
   },
@@ -95,7 +112,7 @@ export const WORKSPACES: Record<DemoPersona, WorkspaceProfile> = {
   },
 }
 
-export const PERSONA_ORDER: DemoPersona[] = ['coordinador', 'qf-clinico', 'qf-mezclas', 'enfermeria', 'admin']
+export const PERSONA_ORDER: DemoPersona[] = ['coordinador', 'qf-clinico', 'farmacia', 'qf-mezclas', 'enfermeria', 'admin']
 
 /** Clave de nav activa para una ubicación (para resaltar el ítem correcto). */
 export function activeNavKey(pathname: string, search: string): NavKey {
@@ -107,6 +124,8 @@ export function activeNavKey(pathname: string, search: string): NavKey {
     return 'hoy'
   }
   if (pathname.startsWith('/patients')) return 'pacientes'
+  if (pathname.startsWith('/nursing-planning')) return 'planeacion-enf'
+  if (pathname.startsWith('/communications')) return 'comunicaciones'
   if (pathname.startsWith('/journeys')) return 'journeys'
   if (pathname.startsWith('/clinical-review')) return 'revision'
   if (pathname.startsWith('/config')) return 'configuracion'
@@ -116,6 +135,21 @@ export function activeNavKey(pathname: string, search: string): NavKey {
     return 'operaciones'
   }
   return 'hoy'
+}
+
+/** Agrupación de navegación (solo presentación, UX-03). Clasifica cada destino
+ * en una sección para dar jerarquía visual al sidebar; NO altera qué ve cada
+ * persona (eso lo sigue definiendo `profile.nav`). */
+export type NavGroup = 'operacion' | 'rol' | 'sistema'
+export const NAV_GROUP: Record<NavKey, NavGroup> = {
+  hoy: 'operacion', pacientes: 'operacion', journeys: 'operacion', comunicaciones: 'operacion',
+  'seguimiento-nav': 'rol', revision: 'rol', operaciones: 'rol', preparacion: 'rol',
+  trazabilidad: 'rol', administracion: 'rol', 'planeacion-enf': 'rol',
+  analitica: 'sistema', configuracion: 'sistema',
+}
+export const NAV_GROUP_ORDER: NavGroup[] = ['operacion', 'rol', 'sistema']
+export const NAV_GROUP_LABEL: Record<NavGroup, string> = {
+  operacion: 'Operación', rol: 'Área de trabajo', sistema: 'Sistema',
 }
 
 export const navRefKey = (r: NavRef): NavKey => (typeof r === 'string' ? r : r.key)

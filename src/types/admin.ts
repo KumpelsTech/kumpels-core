@@ -1,4 +1,5 @@
 import type { DemoPersona } from '../config/workspaces'
+import type { Capability } from '../config/capabilities'
 
 /**
  * Dominio de ADMINISTRACIÓN / CONFIGURACIÓN institucional (nativo de Kumpels).
@@ -31,6 +32,8 @@ export interface AdminUser {
   teamId?: string
   scope: Scope
   status: UserStatus
+  /** Capacidades explícitas del usuario; si se omite, se derivan del rol. */
+  capabilities?: Capability[]
 }
 
 export interface Team {

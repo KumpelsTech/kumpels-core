@@ -34,9 +34,13 @@ export interface PharmaceuticalCareEnrollment {
 /** Evaluación de seguimiento registrada por el profesional (no es una intervención). */
 export interface FollowUpAssessment {
   patientId: string
+  episodeId?: string
   mode: CareMode
   at: string
+  atIso?: string
   by: string
+  /** Rol del profesional (atribución). */
+  role?: string
   continuidad: string
   usoReportado?: string
   seguridad?: string
@@ -44,6 +48,8 @@ export interface FollowUpAssessment {
   acceso?: string
   observation?: string
   nextFollowUp: string
+  /** Referencia al seguimiento previo (momento) — distinguir actual vs anterior. */
+  previousAssessmentAt?: string
   /** true si el autoreporte/síntomas requieren revisión profesional posterior. */
   needsProfessionalReview: boolean
 }
